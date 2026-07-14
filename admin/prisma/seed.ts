@@ -11,7 +11,7 @@
  *
  * Run with: npm run db:seed  (wraps `tsx prisma/seed.ts`)
  */
-import { PrismaClient, ContentStatus } from "@prisma/client";
+import { PrismaClient, ContentStatus, Prisma } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import fs from "node:fs";
 import path from "node:path";
@@ -235,7 +235,7 @@ async function seedPages() {
         slug,
         title: slug === "home" ? "الرئيسية" : "من نحن",
         draftData: {},
-        publishedData: null,
+        publishedData: Prisma.DbNull,
         status: ContentStatus.DRAFT,
       },
     });
