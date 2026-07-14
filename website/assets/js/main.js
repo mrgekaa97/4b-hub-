@@ -1,0 +1,177 @@
+// ============================================================
+// 4 Brothers Security & Guarding — shared site behavior
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+
+  /* ---------- Loading screen ---------- */
+  const loader = document.querySelector('.loading-screen');
+  if (loader) {
+    const hide = () => loader.classList.add('is-hidden');
+    window.addEventListener('load', () => setTimeout(hide, 250));
+    setTimeout(hide, 1800); // safety fallback
+  }
+
+  /* ---------- Navbar scroll state ---------- */
+  const navbar = document.querySelector('.navbar');
+  const onScroll = () => {
+    if (!navbar) return;
+    navbar.classList.toggle('is-scrolled', window.scrollY > 24);
+  };
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  /* ---------- Back to top ---------- */
+  const backToTop = document.querySelector('.back-to-top');
+  if (backToTop) {
+    const toggleBtt = () => backToTop.classList.toggle('is-visible', window.scrollY > 480);
+    toggleBtt();
+    window.addEventListener('scroll', toggleBtt, { passive: true });
+    backToTop.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+
+  /* ---------- Mobile menu ---------- */
+  const toggle = document.querySelector('.nav-toggle');
+  const mobileMenu = document.querySelector('.mobile-menu');
+  if (toggle && mobileMenu) {
+    toggle.addEventListener('click', () => {
+      const open = toggle.classList.toggle('is-open');
+      mobileMenu.classList.toggle('is-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      document.body.style.overflow = open ? 'hidden' : '';
+    });
+    mobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+      toggle.classList.remove('is-open');
+      mobileMenu.classList.remove('is-open');
+      document.body.style.overflow = '';
+    }));
+  }
+
+  /* ---------- Scroll reveal ---------- */
+  const revealEls = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window && revealEls.length) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    revealEls.forEach(el => io.observe(el));
+  } else {
+    revealEls.forEach(el => el.classList.add('is-visible'));
+  }
+
+  /* ---------- Stat count-up ---------- */
+  const statNums = document.querySelectorAll('[data-count-to]');
+  if ('IntersectionObserver' in window && statNums.length) {
+    const countIo = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        const target = parseFloat(el.dataset.countTo);
+        const suffix = el.dataset.suffix || '';
+        const duration = 1400;
+        const start = performance.now();
+        const startVal = 0;
+        function tick(now) {
+          const p = Math.min((now - start) / duration, 1);
+          const eased = 1 - Math.pow(1 - p, 3);
+          const val = startVal + (target - startVal) * eased;
+          el.textContent = (Number.isInteger(target) ? Math.round(val) : val.toFixed(1)) + suffix;
+          if (p < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+        countIo.unobserve(el);
+      });
+    }, { threshold: 0.4 });
+    statNums.forEach(el => countIo.observe(el));
+  }
+
+  /* ---------- Testimonial carousel ---------- */
+  const testiTrack = document.querySelector('.testi-track');
+  if (testiTrack) {
+    const slides = [...testiTrack.querySelectorAll('.testi-slide')];
+    const dotsWrap = document.querySelector('.testi-dots');
+    let active = 0;
+    let timer;
+
+    slides.forEach((_, i) => {
+      const dot = document.createElement('button');
+      if (i === 0) dot.classList.add('is-active');
+      dot.setAttribute('aria-label', `Testimonial ${i + 1}`);
+      dot.addEventListener('click', () => show(i));
+      dotsWrap?.appendChild(dot);
+    });
+
+    function show(i) {
+      slides[active].classList.remove('is-active');
+      dotsWrap?.children[active]?.classList.remove('is-active');
+      active = i;
+      slides[active].classList.add('is-active');
+      dotsWrap?.children[active]?.classList.add('is-active');
+    }
+    function next() { show((active + 1) % slides.length); }
+    function startAuto() { timer = setInterval(next, 6000); }
+    function stopAuto() { clearInterval(timer); }
+    if (slides.length > 1) {
+      startAuto();
+      testiTrack.addEventListener('mouseenter', stopAuto);
+      testiTrack.addEventListener('mouseleave', startAuto);
+    }
+  }
+
+  /* ---------- FAQ accordion ---------- */
+  document.querySelectorAll('.faq-item').forEach(item => {
+    const q = item.querySelector('.faq-q');
+    const a = item.querySelector('.faq-a');
+    q?.addEventListener('click', () => {
+      const isOpen = item.classList.contains('is-open');
+      item.parentElement.querySelectorAll('.faq-item').forEach(other => {
+        other.classList.remove('is-open');
+        other.querySelector('.faq-a').style.maxHeight = null;
+        other.querySelector('.faq-q')?.setAttribute('aria-expanded', 'false');
+      });
+      if (!isOpen) {
+        item.classList.add('is-open');
+        a.style.maxHeight = a.scrollHeight + 'px';
+        q.setAttribute('aria-expanded', 'true');
+      }
+    });
+  });
+
+  /* ---------- Form validation (Quote + Careers + Contact) ---------- */
+  document.querySelectorAll('form[data-validate]').forEach(form => {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      let valid = true;
+      form.querySelectorAll('[required]').forEach(field => {
+        const wrap = field.closest('.field');
+        const filled = field.type === 'checkbox' ? field.checked : field.value.trim().length > 0;
+        if (!filled) {
+          valid = false;
+          wrap?.classList.add('has-error');
+        } else {
+          wrap?.classList.remove('has-error');
+        }
+      });
+      const emailField = form.querySelector('input[type="email"]');
+      if (emailField && emailField.value) {
+        const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailField.value);
+        if (!ok) {
+          valid = false;
+          emailField.closest('.field')?.classList.add('has-error');
+        }
+      }
+      if (!valid) {
+        form.querySelector('.has-error input, .has-error select, .has-error textarea')?.focus();
+        return;
+      }
+      form.style.display = 'none';
+      form.parentElement.querySelector('.form-success')?.classList.add('is-visible');
+    });
+  });
+
+});

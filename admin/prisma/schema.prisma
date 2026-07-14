@@ -1,0 +1,692 @@
+// ============================================================
+// 4 Brothers Admin CMS — Prisma schema
+// PostgreSQL. See /docs/PROJECT-STRUCTURE.md for how this fits
+// into the overall project, and admin/README.md for setup steps.
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  // Pooled connection (PgBouncer) — what the running app uses. Required for
+  // serverless hosts like Vercel, where every request can be a fresh
+  // connection; a normal Postgres connection limit gets exhausted fast
+  // without pooling.
+  url       = env("DATABASE_URL")
+  // Direct (non-pooled) connection — required for `prisma migrate`, since
+  // PgBouncer's transaction mode doesn't support the prepared statements
+  // migrations need. Same database, different port/host on Supabase.
+  // See admin/.env.example for where to get both from Supabase.
+  directUrl = env("DIRECT_URL")
+}
+
+// ------------------------------------------------------------
+// Auth + RBAC foundation
+// ------------------------------------------------------------
+// Even though Version 1 ships with exactly one Administrator,
+// Role/Permission are modeled as real many-to-many relations
+// (not a hardcoded enum) so adding a second role in Version 2
+// — e.g. "Editor" who can manage content but not Settings/Users —
+// is a data change, not a code rewrite.
+
+model User {
+  id                 String    @id @default(cuid())
+  username           String    @unique
+  email              String?   @unique
+  displayName        String
+  passwordHash       String
+  roleId             String
+  role               Role      @relation(fields: [roleId], references: [id])
+  isActive           Boolean   @default(true)
+  failedLoginAttempts Int      @default(0)
+  lockedUntil        DateTime?
+  lastLoginAt        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  sessions           Session[]
+  activityLogs       ActivityLog[]
+  uploadedMedia      MediaAsset[]
+  contentRevisions   ContentRevision[]
+  settingsUpdated    Setting[]
+  approvedDevices    Device[]          @relation("DeviceApprovedBy")
+  notifications      Notification[]   @relation("UserNotifications")
+
+  @@map("users")
+}
+
+model Role {
+  id          String            @id @default(cuid())
+  key         String            @unique // e.g. "administrator"
+  name        String
+  description String?
+  isSystem    Boolean           @default(false) // system roles cannot be deleted via CMS UI
+  permissions RolePermission[]
+  users       User[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String            @id @default(cuid())
+  key         String            @unique // e.g. "services.manage", "settings.manage"
+  description String?
+  group       String            // e.g. "content", "requests", "system" — used to group the RBAC UI later
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// Server-side session store (not stateless-only JWT) so a session
+// can be revoked immediately (logout everywhere, disable a user, etc.)
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash    String   @unique // sha256 of the opaque token stored in the cookie — never store the raw token
+  userAgent    String?
+  ipAddress    String?
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  revokedAt    DateTime?
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+// ------------------------------------------------------------
+// Dynamic Settings (Key/Value) architecture
+// ------------------------------------------------------------
+// Powers the "Website Settings" and "SEO Settings" modules without
+// a schema migration every time a new setting is needed.
+
+enum SettingValueType {
+  STRING
+  NUMBER
+  BOOLEAN
+  JSON
+}
+
+model Setting {
+  id        String           @id @default(cuid())
+  key       String           @unique // e.g. "site.phone", "seo.home.title"
+  group     String           // e.g. "general", "contact", "social", "seo"
+  valueType SettingValueType @default(STRING)
+  value     Json             // always stored as Json; cast per valueType when read
+  label     String?          // human-readable label for the settings UI
+  updatedById String?
+  updatedBy   User?            @relation(fields: [updatedById], references: [id])
+  updatedAt DateTime         @updatedAt
+  createdAt DateTime         @default(now())
+
+  @@index([group])
+  @@map("settings")
+}
+
+// ------------------------------------------------------------
+// Activity Log architecture
+// ------------------------------------------------------------
+// One generic, append-only table used by every module — a Service
+// edit, a Setting change, and an admin login all write here the
+// same way, so the Dashboard Overview's "recent activity" feed and
+// any future audit screen need only query one table.
+
+enum ActivityAction {
+  CREATE
+  UPDATE
+  DELETE
+  PUBLISH
+  UNPUBLISH
+  LOGIN
+  LOGOUT
+  LOGIN_FAILED
+  STATUS_CHANGE
+}
+
+model ActivityLog {
+  id         String         @id @default(cuid())
+  userId     String?
+  user       User?          @relation(fields: [userId], references: [id])
+  action     ActivityAction
+  entityType String         // e.g. "Service", "Setting", "User", "Session"
+  entityId   String?
+  summary    String         // short human-readable line, e.g. "Updated service 'الحراسة الثابتة'"
+  metadata   Json?          // optional structured diff/details
+  ipAddress  String?
+  createdAt  DateTime       @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("activity_logs")
+}
+
+// ------------------------------------------------------------
+// Draft & Publish architecture
+// ------------------------------------------------------------
+// Deliberately lightweight for a V1 CMS: every publishable model
+// carries its own `status` + `publishedAt`, and a shared
+// ContentRevision table stores the history of changes for any
+// entity type — enough to show "who changed what, when" and to
+// restore a previous version, without building a full multi-branch
+// versioning system. See repositories/base.repository.ts for the
+// shared publish()/unpublish()/revisions() methods every content
+// repository inherits, which is what actually makes this reusable
+// across Services/Industries/Careers/Pages rather than one-off code.
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model ContentRevision {
+  id         String   @id @default(cuid())
+  entityType String   // e.g. "Service", "Page"
+  entityId   String
+  data       Json     // full snapshot of the entity at this point in time
+  createdById String?
+  createdBy   User?   @relation(fields: [createdById], references: [id])
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@map("content_revisions")
+}
+
+// Generic "page" content — powers the Home Page Editor and About
+// Page Editor without needing a dedicated table per page.
+model Page {
+  id           String        @id @default(cuid())
+  slug         String        @unique // "home", "about"
+  title        String
+  draftData    Json          // the editable, not-yet-live version
+  publishedData Json?        // what the live site currently reflects (null until first publish)
+  status       ContentStatus @default(DRAFT)
+  publishedAt  DateTime?
+  updatedAt    DateTime      @updatedAt
+  createdAt    DateTime      @default(now())
+
+  @@map("pages")
+}
+
+// ------------------------------------------------------------
+// Media Library
+// ------------------------------------------------------------
+model MediaAsset {
+  id           String   @id @default(cuid())
+  filename     String
+  path         String   // public path, e.g. "/uploads/media/logo-nav.png"
+  altText      String?
+  label        String?
+  mimeType     String
+  sizeBytes    Int
+  uploadedById String?
+  uploadedBy   User?    @relation(fields: [uploadedById], references: [id])
+  createdAt    DateTime @default(now())
+
+  @@map("media_assets")
+}
+
+// ------------------------------------------------------------
+// Content modules (Services / Industries / Careers)
+// ------------------------------------------------------------
+// Shape mirrors what's already live in /database/*.json so the
+// first migration can seed real content instead of empty tables.
+
+model Service {
+  id        String        @id @default(cuid())
+  slug      String        @unique
+  icon      String        // key into shared/icons/icon-set.json, e.g. "I_SHIELD"
+  title     String
+  summary   String
+  includes  Json          // string[]
+  status    ContentStatus @default(DRAFT)
+  sortOrder Int           @default(0)
+  publishedAt DateTime?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@map("services")
+}
+
+model Industry {
+  id          String        @id @default(cuid())
+  icon        String
+  title       String
+  description String
+  status      ContentStatus @default(DRAFT)
+  sortOrder   Int           @default(0)
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("industries")
+}
+
+model CareerPosting {
+  id           String        @id @default(cuid())
+  title        String
+  type         String        // e.g. "دوام كامل"
+  description  String
+  requirements Json          // string[]
+  status       ContentStatus @default(DRAFT)
+  isOpen       Boolean       @default(true)
+  publishedAt  DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@map("career_postings")
+}
+
+// ------------------------------------------------------------
+// Inbound requests (Quote Requests / Contact Messages)
+// ------------------------------------------------------------
+enum QuoteRequestStatus {
+  NEW
+  CONTACTED
+  CLOSED
+}
+
+model QuoteRequest {
+  id                String              @id @default(cuid())
+  company           String
+  contactName       String
+  phone             String
+  email             String
+  industry          String
+  guardsRange       String?
+  location          String
+  preferredContact  String?
+  message           String?
+  status            QuoteRequestStatus  @default(NEW)
+  submittedAt       DateTime            @default(now())
+
+  @@map("quote_requests")
+}
+
+enum ContactMessageStatus {
+  UNREAD
+  READ
+}
+
+model ContactMessage {
+  id          String                @id @default(cuid())
+  name        String
+  email       String
+  phone       String?
+  subject     String?
+  message     String
+  status      ContactMessageStatus  @default(UNREAD)
+  submittedAt DateTime              @default(now())
+
+  @@map("contact_messages")
+}
+
+// ------------------------------------------------------------
+// Dynamic Form architecture
+// ------------------------------------------------------------
+// Lets a new form (e.g. a future "Partner Inquiry" form) be defined
+// as data — fields, labels, validation — instead of a new table and
+// new code every time. QuoteRequest/ContactMessage stay as their own
+// typed tables above because they're core, stable, and queried a lot;
+// DynamicForm is for anything added later without a migration.
+
+model DynamicFormDefinition {
+  id          String                   @id @default(cuid())
+  key         String                   @unique // e.g. "partner-inquiry"
+  name        String
+  fieldsSchema Json                    // array of { name, label, type, required, options? }
+  isActive    Boolean                  @default(true)
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+  submissions DynamicFormSubmission[]
+
+  @@map("dynamic_form_definitions")
+}
+
+model DynamicFormSubmission {
+  id           String                 @id @default(cuid())
+  formId       String
+  form         DynamicFormDefinition  @relation(fields: [formId], references: [id], onDelete: Cascade)
+  data         Json
+  submittedAt  DateTime               @default(now())
+
+  @@index([formId])
+  @@map("dynamic_form_submissions")
+}
+
+// ============================================================
+// EXTENSION — added for 4B HUB (unified platform: website + CMS
+// + Employee Portal). Nothing above this line was modified except
+// adding two back-relation fields to User (DeviceApprovedBy,
+// UserNotifications) required by the models below.
+// ============================================================
+
+// ------------------------------------------------------------
+// Testimonials (CMS content module — added to the original
+// Services/Industries/Careers set per the 4B HUB product doc)
+// ------------------------------------------------------------
+model Testimonial {
+  id            String        @id @default(cuid())
+  quoteText     String
+  clientName    String
+  clientRole    String?
+  clientCompany String?
+  avatarInitial String? // single-letter avatar shown on the public site, matches current design
+  status        ContentStatus @default(DRAFT)
+  sortOrder     Int           @default(0)
+  publishedAt   DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@map("testimonials")
+}
+
+// ------------------------------------------------------------
+// Employee Portal — identity
+// ------------------------------------------------------------
+// Employees are a DELIBERATELY SEPARATE identity from admin User.
+// Rationale: an admin User is one of a handful of office accounts
+// with RBAC permissions across content/settings; an Employee is a
+// guard/supervisor who only ever touches their own attendance,
+// profile, and notifications. Conflating them into one table with
+// a "type" flag would mean every admin RBAC check also has to
+// account for the employee case. Keeping them separate tables
+// means each side's rules stay simple; the unified /login route
+// (see src/lib/auth/unified-login.ts) is what makes it *feel* like
+// one product despite two identity tables underneath.
+
+model Employee {
+  id                String     @id @default(cuid())
+  employeeCode      String     @unique // human-friendly ID shown on badges/reports, e.g. "EMP-0042"
+  fullName          String
+  phone             String
+  email             String?
+  username          String     @unique
+  passwordHash      String
+  mustChangePassword Boolean   @default(true) // true until first login's forced password change
+  nationalId        String?
+  isSupervisor      Boolean    @default(false)
+  isActive          Boolean    @default(true)
+  failedLoginAttempts Int      @default(0)
+  lockedUntil       DateTime?
+  lastLoginAt       DateTime?
+
+  assignedSiteId    String?
+  assignedSite      Site?      @relation("SiteAssignment", fields: [assignedSiteId], references: [id])
+  supervisedSites   Site[]     @relation("SiteSupervisor")
+
+  devices           Device[]
+  sessions          EmployeeSession[]
+  shiftAssignments  ShiftAssignment[]
+  attendanceRecords AttendanceRecord[]
+  notifications     Notification[]    @relation("EmployeeNotifications")
+
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  @@map("employees")
+}
+
+model EmployeeSession {
+  id         String    @id @default(cuid())
+  employeeId String
+  employee   Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  deviceId   String?
+  device     Device?   @relation(fields: [deviceId], references: [id])
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+  revokedAt  DateTime?
+
+  @@index([employeeId])
+  @@map("employee_sessions")
+}
+
+// ------------------------------------------------------------
+// Trusted Devices
+// ------------------------------------------------------------
+enum DeviceStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REVOKED
+}
+
+model Device {
+  id            String       @id @default(cuid())
+  employeeId    String
+  employee      Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  fingerprint   String       // stable hash derived client-side (see lib/device/fingerprint.ts, added with Employee Portal module)
+  deviceName    String?
+  browser       String?
+  operatingSystem String?
+  status        DeviceStatus @default(PENDING)
+  firstSeenAt   DateTime     @default(now())
+  lastSeenAt    DateTime     @default(now())
+  approvedById  String?
+  approvedBy    User?        @relation("DeviceApprovedBy", fields: [approvedById], references: [id])
+  approvedAt    DateTime?
+  sessions      EmployeeSession[]
+
+  @@unique([employeeId, fingerprint])
+  @@map("devices")
+}
+
+// ------------------------------------------------------------
+// Sites & Shifts
+// ------------------------------------------------------------
+model Site {
+  id                 String     @id @default(cuid())
+  name               String
+  clientName         String
+  address            String
+  latitude           Float
+  longitude          Float
+  allowedRadiusMeters Int       @default(150)
+  supervisorId       String?
+  supervisor         Employee?  @relation("SiteSupervisor", fields: [supervisorId], references: [id])
+  assignedEmployees  Employee[] @relation("SiteAssignment")
+  shifts             Shift[]
+  attendanceRecords  AttendanceRecord[]
+  isActive           Boolean    @default(true)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  @@map("sites")
+}
+
+enum ShiftType {
+  MORNING
+  EVENING
+  NIGHT
+  CUSTOM
+}
+
+model Shift {
+  id          String            @id @default(cuid())
+  name        String
+  type        ShiftType
+  startTime   String            // "HH:mm", recurring daily — not a specific calendar date
+  endTime     String
+  siteId      String?
+  site        Site?             @relation(fields: [siteId], references: [id])
+  assignments ShiftAssignment[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@map("shifts")
+}
+
+model ShiftAssignment {
+  employeeId String
+  shiftId    String
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  shift      Shift    @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  isSupervisorRole Boolean @default(false)
+
+  @@id([employeeId, shiftId])
+  @@map("shift_assignments")
+}
+
+// ------------------------------------------------------------
+// Attendance
+// ------------------------------------------------------------
+// GPS is classified, never used to reject a check-in/out outright
+// (per product requirement) — see LocationStatus. lateMinutes /
+// earlyLeaveMinutes / overtimeMinutes are independent numeric
+// facts, not a single mutually-exclusive status, because a real
+// shift can be both late AND have overtime.
+
+enum LocationStatus {
+  INSIDE_SITE
+  NEAR_SITE
+  OUTSIDE_SITE
+}
+
+enum AttendanceStatus {
+  PRESENT
+  LATE
+  ABSENT
+  EARLY_LEAVE
+}
+
+model AttendanceRecord {
+  id         String   @id @default(cuid())
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id])
+  siteId     String
+  site       Site     @relation(fields: [siteId], references: [id])
+  shiftId    String?
+
+  date       DateTime // calendar day this record belongs to (time-truncated)
+
+  checkInAt               DateTime?
+  checkInLat              Float?
+  checkInLng              Float?
+  checkInAccuracyMeters   Float?
+  checkInMapsLink         String?
+  checkInIp               String?
+  checkInDeviceFingerprint String?
+  checkInBrowser          String?
+  checkInOs               String?
+  checkInDeviceName       String?
+  checkInLocationStatus   LocationStatus?
+
+  checkOutAt               DateTime?
+  checkOutLat              Float?
+  checkOutLng              Float?
+  checkOutAccuracyMeters   Float?
+  checkOutMapsLink         String?
+  checkOutIp               String?
+  checkOutDeviceFingerprint String?
+  checkOutBrowser          String?
+  checkOutOs               String?
+  checkOutDeviceName       String?
+  checkOutLocationStatus   LocationStatus?
+
+  status              AttendanceStatus @default(PRESENT)
+  lateMinutes         Int              @default(0)
+  earlyLeaveMinutes   Int              @default(0)
+  overtimeMinutes     Int              @default(0)
+  workDurationMinutes Int?
+  notes               String?
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([employeeId, date])
+  @@index([siteId, date])
+  @@map("attendance_records")
+}
+
+// ------------------------------------------------------------
+// Unified Notification Center
+// ------------------------------------------------------------
+// One table for every notification, regardless of whether the
+// recipient is an admin User or an Employee — exactly one of
+// recipientUserId / recipientEmployeeId is set (enforced at the
+// service layer, not the DB, since Postgres has no native XOR
+// constraint without a trigger — kept simple deliberately).
+
+enum NotificationType {
+  NEW_QUOTE_REQUEST
+  NEW_CONTACT_MESSAGE
+  NEW_JOB_APPLICATION
+  EMPLOYEE_CHECK_IN
+  EMPLOYEE_CHECK_OUT
+  ATTENDANCE_OUTSIDE_SITE
+  UNKNOWN_DEVICE_LOGIN
+  WEBSITE_SETTINGS_UPDATED
+  MEDIA_UPLOADED
+  NEW_TRUSTED_DEVICE_REQUEST
+  PASSWORD_CHANGED
+}
+
+enum NotificationPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+model Notification {
+  id                 String                @id @default(cuid())
+  recipientUserId    String?
+  recipientUser      User?                 @relation("UserNotifications", fields: [recipientUserId], references: [id], onDelete: Cascade)
+  recipientEmployeeId String?
+  recipientEmployee  Employee?             @relation("EmployeeNotifications", fields: [recipientEmployeeId], references: [id], onDelete: Cascade)
+
+  type        NotificationType
+  title       String
+  description String
+  priority    NotificationPriority @default(NORMAL)
+  isRead      Boolean              @default(false)
+  actionUrl   String?
+  createdAt   DateTime             @default(now())
+
+  @@index([recipientUserId])
+  @@index([recipientEmployeeId])
+  @@map("notifications")
+}
+
+// ------------------------------------------------------------
+// Job Applications (career postings' inbound submissions)
+// ------------------------------------------------------------
+// Same rationale/limitation as QuoteRequest/ContactMessage: the public
+// careers.html apply form is currently client-side only (see
+// database/README.md) — this table is where real submissions will land
+// once that form is wired to a backend endpoint.
+enum JobApplicationStatus {
+  NEW
+  REVIEWING
+  INTERVIEW
+  REJECTED
+  HIRED
+}
+
+model JobApplication {
+  id           String               @id @default(cuid())
+  fullName     String
+  phone        String
+  email        String?
+  roleApplied  String               // matches CareerPosting.title at submission time (kept as text, not FK — posting may later change/close)
+  experience   String?
+  message      String?
+  status       JobApplicationStatus @default(NEW)
+  submittedAt  DateTime             @default(now())
+
+  @@map("job_applications")
+}

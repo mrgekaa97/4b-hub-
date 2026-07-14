@@ -1,0 +1,25 @@
+{
+  "_note": "SAMPLE entries for the admin dashboard's Contact Messages module — same caveat as quote-requests.json: the live contact form has no backend wired up yet.",
+  "messages": [
+    {
+      "id": 1,
+      "name": "أحمد فتحي",
+      "email": "ahmed.fathy@example.com",
+      "phone": "01055566677",
+      "subject": "استفسار عن الأسعار",
+      "message": "هل يوجد باقات شهرية أم تعاقد سنوي فقط؟",
+      "status": "unread",
+      "submitted_at": "2026-07-05T11:20:00+02:00"
+    },
+    {
+      "id": 2,
+      "name": "سارة منير",
+      "email": "sara.mounir@example.com",
+      "phone": "01033322211",
+      "subject": "طلب توظيف عبر نموذج التواصل",
+      "message": "أرسلت طلب توظيف لكن أريد التأكد من استلامه.",
+      "status": "read",
+      "submitted_at": "2026-07-01T16:00:00+02:00"
+    }
+  ]
+}

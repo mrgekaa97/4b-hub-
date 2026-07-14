@@ -1,0 +1,116 @@
+{
+  "media": [
+    {
+      "id": 1,
+      "filename": "apple-touch-icon.png",
+      "path": "uploads/media/apple-touch-icon.png",
+      "label_ar": "أيقونة iOS/Apple",
+      "size_bytes": 24922,
+      "used_in": "website (logo/favicon/manifest — see website/build.py NAV/LOADING_SCREEN/footer)"
+    },
+    {
+      "id": 2,
+      "filename": "favicon-16.png",
+      "path": "uploads/media/favicon-16.png",
+      "label_ar": "Favicon 16×16",
+      "size_bytes": 783,
+      "used_in": "website (logo/favicon/manifest — see website/build.py NAV/LOADING_SCREEN/footer)"
+    },
+    {
+      "id": 3,
+      "filename": "favicon-32.png",
+      "path": "uploads/media/favicon-32.png",
+      "label_ar": "Favicon 32×32",
+      "size_bytes": 2707,
+      "used_in": "website (logo/favicon/manifest — see website/build.py NAV/LOADING_SCREEN/footer)"
+    },
+    {
+      "id": 4,
+      "filename": "favicon.ico",
+      "path": "uploads/media/favicon.ico",
+      "label_ar": "أيقونة المتصفح (favicon)",
+      "size_bytes": 9318,
+      "used_in": "website (logo/favicon/manifest — see website/build.py NAV/LOADING_SCREEN/footer)"
+    },
+    {
+      "id": 5,
+      "filename": "icon-192.png",
+      "path": "uploads/media/icon-192.png",
+      "label_ar": "أيقونة PWA 192×192",
+      "size_bytes": 27945,
+      "used_in": "website (logo/favicon/manifest — see website/build.py NAV/LOADING_SCREEN/footer)"
+    },
+    {
+      "id": 6,
+      "filename": "icon-512.png",
+      "path": "uploads/media/icon-512.png",
+      "label_ar": "أيقونة PWA 512×512",
+      "size_bytes": 136535,
+      "used_in": "website (logo/favicon/manifest — see website/build.py NAV/LOADING_SCREEN/footer)"
+    },
+    {
+      "id": 7,
+      "filename": "icon-512.webp",
+      "path": "uploads/media/icon-512.webp",
+      "label_ar": "أيقونة PWA 512×512 WebP",
+      "size_bytes": 40240,
+      "used_in": "website (logo/favicon/manifest — see website/build.py NAV/LOADING_SCREEN/footer)"
+    },
+    {
+      "id": 8,
+      "filename": "logo-hero.png",
+      "path": "uploads/media/logo-hero.png",
+      "label_ar": "الشعار — نسخة OG الافتراضية",
+      "size_bytes": 129557,
+      "used_in": "website (logo/favicon/manifest — see website/build.py NAV/LOADING_SCREEN/footer)"
+    },
+    {
+      "id": 9,
+      "filename": "logo-hero.webp",
+      "path": "uploads/media/logo-hero.webp",
+      "label_ar": "الشعار — نسخة OG WebP",
+      "size_bytes": 41054,
+      "used_in": "website (logo/favicon/manifest — see website/build.py NAV/LOADING_SCREEN/footer)"
+    },
+    {
+      "id": 10,
+      "filename": "logo-nav.png",
+      "path": "uploads/media/logo-nav.png",
+      "label_ar": "الشعار — مقاس صغير (نافبار/فوتر)",
+      "size_bytes": 21152,
+      "used_in": "website (logo/favicon/manifest — see website/build.py NAV/LOADING_SCREEN/footer)"
+    },
+    {
+      "id": 11,
+      "filename": "logo-nav.webp",
+      "path": "uploads/media/logo-nav.webp",
+      "label_ar": "الشعار — مقاس صغير WebP",
+      "size_bytes": 9284,
+      "used_in": "website (logo/favicon/manifest — see website/build.py NAV/LOADING_SCREEN/footer)"
+    },
+    {
+      "id": 12,
+      "filename": "logo-square.png",
+      "path": "uploads/media/logo-square.png",
+      "label_ar": "الشعار — مربع (Social/JSON-LD)",
+      "size_bytes": 136535,
+      "used_in": "website (logo/favicon/manifest — see website/build.py NAV/LOADING_SCREEN/footer)"
+    },
+    {
+      "id": 13,
+      "filename": "logo-wide.png",
+      "path": "uploads/media/logo-wide.png",
+      "label_ar": "الشعار — عرض كامل (خلفية الهيرو)",
+      "size_bytes": 256070,
+      "used_in": "website (logo/favicon/manifest — see website/build.py NAV/LOADING_SCREEN/footer)"
+    },
+    {
+      "id": 14,
+      "filename": "logo-wide.webp",
+      "path": "uploads/media/logo-wide.webp",
+      "label_ar": "الشعار — عرض كامل WebP",
+      "size_bytes": 48166,
+      "used_in": "website (logo/favicon/manifest — see website/build.py NAV/LOADING_SCREEN/footer)"
+    }
+  ]
+}

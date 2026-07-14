@@ -1,0 +1,20 @@
+{
+  "company_name_ar": "فور برذرز للأمن والحراسات",
+  "company_name_en": "4 Brothers Security & Guarding",
+  "short_name": "4 Brothers",
+  "phone": "+20 100 000 0000",
+  "whatsapp_number": "201000000000",
+  "email": "info@4brothers-security.com",
+  "address_ar": "القاهرة الجديدة، مصر",
+  "working_hours_ar": "الأحد – الخميس، 9 ص – 6 م",
+  "emergency_line_note_ar": "خط الطوارئ متاح على مدار الساعة لعملاء العقود القائمة",
+  "commercial_registry_no": "000000",
+  "security_license_no": "0000",
+  "social_links": {
+    "facebook": "",
+    "linkedin": "",
+    "whatsapp": "https://wa.me/201000000000"
+  },
+  "site_url": "https://www.4brothers-security.com",
+  "_note": "Every field above is a placeholder copied from the values already live on the website. Editing a field here is meant to update the live site's corresponding text once the admin dashboard's Website Settings module writes back to website/build.py's NAV/footer/contact content and regenerates the HTML."
+}

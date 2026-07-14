@@ -1,0 +1,47 @@
+{
+  "_note": "These are SAMPLE entries for building/demoing the admin dashboard's Quote Requests module. The live website's quote form (contact.html#quote) currently only shows a client-side success message — it has no backend to actually deliver submissions here. See docs/DEPLOYMENT.md and admin/README.md for what's needed to connect them for real.",
+  "requests": [
+    {
+      "id": 1,
+      "company": "مصنع الأمل للصناعات الغذائية",
+      "contact_name": "محمود سيد",
+      "phone": "01011122233",
+      "email": "mahmoud@amal-foods.example",
+      "industry": "مصنع",
+      "guards_range": "4 – 10 أفراد",
+      "location": "العاشر من رمضان",
+      "preferred_contact": "مكالمة هاتفية",
+      "message": "نحتاج حراسة على مدار الساعة لبوابتين ومخزن رئيسي.",
+      "status": "new",
+      "submitted_at": "2026-07-02T10:15:00+02:00"
+    },
+    {
+      "id": 2,
+      "company": "مجموعة فنادق الساحل",
+      "contact_name": "ياسمين عادل",
+      "phone": "01099988877",
+      "email": "yasmin@saheel-hotels.example",
+      "industry": "فندق",
+      "guards_range": "11 – 25 فرد",
+      "location": "الساحل الشمالي",
+      "preferred_contact": "واتساب",
+      "message": "مطلوب تغطية موسم الصيف بدءًا من يونيو.",
+      "status": "contacted",
+      "submitted_at": "2026-06-28T14:40:00+02:00"
+    },
+    {
+      "id": 3,
+      "company": "كمبوند النخيل",
+      "contact_name": "كريم حسن",
+      "phone": "01022233344",
+      "email": "karim@alnakheel.example",
+      "industry": "مجمع سكني",
+      "guards_range": "1 – 3 أفراد",
+      "location": "التجمع الخامس",
+      "preferred_contact": "بريد إلكتروني",
+      "message": "نبحث عن حارس ليلي واحد للبوابة الرئيسية.",
+      "status": "closed",
+      "submitted_at": "2026-06-20T09:05:00+02:00"
+    }
+  ]
+}

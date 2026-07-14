@@ -1,0 +1,67 @@
+/* ============================================================
+   4 BROTHERS — SHARED DESIGN TOKENS
+   Single source of truth for colors, type scale, and spacing.
+   Used by: website/assets/css/styles.css AND admin/ (CMS).
+   Do not duplicate these values elsewhere — import/reference this file.
+   ============================================================ */
+
+:root{
+  /* --- color tokens --- */
+  --ink:        #0A0A0A;   /* primary background */
+  --ink-2:      #0E0E0E;   /* secondary background (gradients) */
+  --charcoal:   #161514;   /* card / panel background */
+  --charcoal-2: #1D1B18;   /* elevated card / hover background */
+  --gold:       #C9A227;   /* primary accent, CTAs, links */
+  --gold-bright:#E4C766;   /* hover states, highlighted numbers */
+  --bronze:     #8B6F1F;   /* pressed states */
+  --ivory:      #F5F0E6;   /* primary text on dark */
+  --steel:      #9C978A;   /* secondary text, captions */
+  --line:       rgba(201,162,39,0.16);   /* hairline borders */
+  --line-strong:rgba(201,162,39,0.35);   /* emphasized borders */
+  --success:    #4C8B5B;   /* confirmation states (e.g. form success, CMS "published") */
+  --danger:     #B3453A;   /* CMS-only: delete/error states (not used on public site) */
+  --warning:    #C9A227;   /* CMS-only: draft/pending states — reuses gold, do not add a new hue */
+
+  /* --- type scale (clamp = fluid, mobile-first) --- */
+  --fs-display: clamp(2.4rem, 6vw, 4.6rem);
+  --fs-h1:      clamp(2rem, 4.4vw, 3.2rem);
+  --fs-h2:      clamp(1.5rem, 3vw, 2.2rem);
+  --fs-h3:      clamp(1.15rem, 2vw, 1.5rem);
+  --fs-lead:    clamp(1.05rem, 1.6vw, 1.25rem);
+  --fs-body:    1rem;
+  --fs-small:   0.875rem;
+  --fs-micro:   0.75rem;
+
+  /* --- spacing scale --- */
+  --sp-1: 0.5rem;
+  --sp-2: 1rem;
+  --sp-3: 1.5rem;
+  --sp-4: 2rem;
+  --sp-5: 3rem;
+  --sp-6: 4rem;
+  --sp-7: 6rem;
+  --sp-8: 8rem;
+
+  --section-pad-y: clamp(3.5rem, 8vw, 6rem);
+  --container-w: 1240px;
+
+  /* --- CMS-only layout tokens (admin uses these; public site does not) --- */
+  --sidebar-w: 260px;
+  --topbar-h: 64px;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --ease: cubic-bezier(.22,.61,.36,1);
+
+  /* --- fonts --- */
+  --font-primary: 'Cairo', 'IBM Plex Sans Arabic', sans-serif;
+}
+
+/*
+  Font loading note:
+  The public website (website/assets/css/styles.css) loads Cairo + IBM Plex Sans Arabic
+  via @import from Google Fonts. If the admin dashboard is built as a sandboxed React
+  artifact, it may not be able to inject that same @import — in that case it should
+  fall back to the system Arabic sans-serif stack and reference --font-primary only
+  where the environment allows a real @font-face/@import.
+*/

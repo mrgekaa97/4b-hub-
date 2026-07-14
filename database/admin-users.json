@@ -1,0 +1,14 @@
+{
+  "_note": "Placeholder admin account for Version 1 CMS development. The password below is NOT a real password and is NOT securely hashed — it is a plain placeholder string so you can see the expected record shape. Before the admin dashboard is used with real data, replace this with a properly hashed password (e.g. bcrypt) generated server-side, never store plaintext passwords in a JSON file that could be deployed or committed to a public repo.",
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "display_name_ar": "مدير الموقع",
+      "password_placeholder": "CHANGE_ME_BEFORE_LAUNCH",
+      "role": "administrator",
+      "created_at": "2026-07-07T00:00:00+02:00",
+      "last_login": null
+    }
+  ]
+}
