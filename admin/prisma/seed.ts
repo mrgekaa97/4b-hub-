@@ -32,7 +32,7 @@ async function seedRbac() {
     await prisma.permission.upsert({
       where: { key },
       update: {},
-      create: { key, group: key.split(".")[0], description: null },
+      create: { key, group: key.split(".")[0] ?? key, description: null },
     });
   }
 
@@ -45,20 +45,23 @@ async function seedRbac() {
     },
   ];
 
-  const roles: Record<string, { id: string }> = {};
+  const roles = new Map<string, { id: string }>();
   for (const def of roleDefs) {
-    roles[def.key] = await prisma.role.upsert({
+    const role = await prisma.role.upsert({
       where: { key: def.key },
       update: {},
       create: { key: def.key, name: def.name, description: def.description, isSystem: true },
     });
+    roles.set(def.key, role);
   }
 
   const allPermissionRows = await prisma.permission.findMany();
   const permissionByKey = new Map(allPermissionRows.map((p) => [p.key, p]));
 
   for (const def of roleDefs) {
-    const roleId = roles[def.key].id;
+    const role = roles.get(def.key);
+    if (!role) throw new Error(`Role '${def.key}' was not created — this should never happen`);
+    const roleId = role.id;
     const grantedKeys = ROLE_PERMISSION_PRESETS[def.key] ?? [];
     for (const key of grantedKeys) {
       const permission = permissionByKey.get(key);
@@ -71,7 +74,9 @@ async function seedRbac() {
     }
   }
 
-  return roles[SYSTEM_ROLES.ADMINISTRATOR];
+  const adminRole = roles.get(SYSTEM_ROLES.ADMINISTRATOR);
+  if (!adminRole) throw new Error("Administrator role was not created — this should never happen");
+  return adminRole;
 }
 
 async function seedAdminUser(roleId: string) {
