@@ -365,6 +365,14 @@ h1,h2,h3,h4{ margin:0; font-weight:800; color:var(--ivory); letter-spacing:-0.01
   color:var(--ivory); padding:.85em 1em; border-radius:6px; font-size:.95rem;
   transition:border-color .25s var(--ease), background-color .25s var(--ease);
 }
+/* Email/phone/URL content is always LTR regardless of page direction —
+   without this, typing in these fields on an RTL page feels backwards
+   (cursor starts from the wrong side). */
+.field input[type="email"],
+.field input[type="tel"],
+.field input[type="url"]{
+  direction:ltr; text-align:left;
+}
 .field input:focus, .field select:focus, .field textarea:focus{ border-color:var(--gold); background:var(--charcoal-2); outline:none; }
 .field textarea{ resize:vertical; min-height:120px; }
 .field .error{ color:#D97757; font-size:.78rem; margin-top:.35rem; display:none; }

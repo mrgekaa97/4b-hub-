@@ -81,6 +81,8 @@ export function LoginForm() {
           id="identifier"
           name="identifier"
           autoComplete="username"
+          dir="ltr"
+          style={{ textAlign: "left" }}
           value={identifier}
           onChange={(e) => setIdentifier(e.target.value)}
           required
@@ -93,6 +95,8 @@ export function LoginForm() {
           name="password"
           type="password"
           autoComplete="current-password"
+          dir="ltr"
+          style={{ textAlign: "left" }}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
