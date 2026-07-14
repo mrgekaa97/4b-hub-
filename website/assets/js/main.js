@@ -3,6 +3,14 @@
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
 
+  /* ---------- Language switch (EN not built yet — see docs/PROJECT_STATUS.md) ---------- */
+  document.querySelectorAll('.lang-switch a:not(.is-active)').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      link.setAttribute('title', 'النسخة الإنجليزية قيد التطوير — قريبًا');
+    });
+  });
+
   /* ---------- Loading screen ---------- */
   const loader = document.querySelector('.loading-screen');
   if (loader) {
