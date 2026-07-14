@@ -63,8 +63,18 @@ export const PERMISSIONS = {
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
 
+export type PermissionGroupKey =
+  | "content"
+  | "requests"
+  | "media"
+  | "settings"
+  | "system"
+  | "workforce"
+  | "reports"
+  | "notifications";
+
 /** Grouped for the future "Roles" settings UI — not used by guards directly. */
-export const PERMISSION_GROUPS: Record<string, PermissionKey[]> = {
+export const PERMISSION_GROUPS: Record<PermissionGroupKey, PermissionKey[]> = {
   content: [
     PERMISSIONS.HOME_MANAGE,
     PERMISSIONS.ABOUT_MANAGE,
