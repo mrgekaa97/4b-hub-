@@ -1,23 +1,16 @@
 import { requirePermission } from "@/lib/auth/guard";
 import { PERMISSIONS } from "@/lib/constants/permissions";
+import { SiteForm } from "@/components/sites/SiteForm";
 
 export const metadata = { title: "إضافة موقع" };
 
-/**
- * Stub for the "Sites" module — implemented in its own turn per the
- * agreed build order. This page already enforces the real permission
- * (SITES_MANAGE) so RBAC is demonstrably working on every nav destination,
- * not just the pages that happen to be built first.
- */
-export default async function SitesStubPage() {
+export default async function NewSitePage() {
   await requirePermission(PERMISSIONS.SITES_MANAGE);
 
   return (
     <div>
-      <h1 className="mb-2 text-xl font-black">إضافة موقع</h1>
-      <p className="text-sm text-[#9C978A]">
-        هذه الوحدة (Sites) قيد الإنشاء ضمن الترتيب المتفق عليه. الوصول محمي بالفعل بصلاحية `SITES_MANAGE`.
-      </p>
+      <h1 className="mb-5 text-xl font-black">إضافة موقع جديد</h1>
+      <SiteForm mode="create" />
     </div>
   );
 }
