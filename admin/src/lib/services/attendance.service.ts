@@ -203,4 +203,63 @@ export const attendanceService = {
 
     return record;
   },
+
+  /**
+   * Admin-facing list with filters — distinct from the employee-facing
+   * getTodayRecordForEmployee/getLastRecordForEmployee above, which only
+   * ever look at one employee's own records.
+   */
+  async listForAdmin(filters: {
+    siteId?: string;
+    status?: "PRESENT" | "LATE" | "ABSENT" | "EARLY_LEAVE";
+    dateFrom?: string;
+    dateTo?: string;
+    outsideOnly?: boolean;
+  }) {
+    return prisma.attendanceRecord.findMany({
+      where: {
+        ...(filters.siteId ? { siteId: filters.siteId } : {}),
+        ...(filters.status ? { status: filters.status } : {}),
+        ...(filters.dateFrom || filters.dateTo
+          ? {
+              date: {
+                ...(filters.dateFrom ? { gte: new Date(filters.dateFrom) } : {}),
+                ...(filters.dateTo ? { lte: new Date(filters.dateTo) } : {}),
+              },
+            }
+          : {}),
+        ...(filters.outsideOnly
+          ? { OR: [{ checkInLocationStatus: "OUTSIDE_SITE" as const }, { checkOutLocationStatus: "OUTSIDE_SITE" as const }] }
+          : {}),
+      },
+      orderBy: [{ date: "desc" }, { checkInAt: "desc" }],
+      take: 200, // simple V1 cap — pagination is a fair V1.1 addition once real volume shows up
+      include: {
+        employee: { select: { id: true, fullName: true, employeeCode: true } },
+        site: { select: { id: true, name: true } },
+      },
+    });
+  },
+
+  async getByIdForAdmin(id: string) {
+    return prisma.attendanceRecord.findUnique({
+      where: { id },
+      include: {
+        employee: { select: { id: true, fullName: true, employeeCode: true } },
+        site: { select: { id: true, name: true, allowedRadiusMeters: true } },
+      },
+    });
+  },
+
+  async updateNotes(id: string, notes: string, actorId?: string) {
+    const record = await prisma.attendanceRecord.update({ where: { id }, data: { notes } });
+    await activityLogService.log({
+      userId: actorId,
+      action: "UPDATE",
+      entityType: "AttendanceRecord",
+      entityId: record.id,
+      summary: "تحديث ملاحظات سجل حضور",
+    });
+    return record;
+  },
 };
