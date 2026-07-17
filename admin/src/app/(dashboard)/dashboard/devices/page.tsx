@@ -28,7 +28,7 @@ export default async function DevicesPage() {
       <div className="mb-5">
         <h1 className="text-xl font-black">الأجهزة الموثوقة</h1>
         <p className="text-sm text-[#9C978A]">
-          كل جهاز يحاول موظف الدخول منه لأول مرة يظهر هنا تلقائيًا بحالة "بانتظار الموافقة".
+          كل جهاز يحاول موظف الدخول منه لأول مرة يظهر هنا تلقائيًا بحالة &quot;بانتظار الموافقة&quot;.
           {pendingCount > 0 && <span className="font-bold text-[#C9A227]"> يوجد {pendingCount} جهاز بانتظار المراجعة.</span>}
         </p>
       </div>
