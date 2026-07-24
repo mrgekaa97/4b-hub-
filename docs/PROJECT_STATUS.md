@@ -5,6 +5,19 @@
 
 ---
 
+## 0. The Bridge — configuration required for CMS ↔ Website sync
+
+Two separate Vercel projects need one env var each, pointing at each other, or the Services CMS will keep working perfectly on its own but the website will just keep using its fallback content forever:
+
+| Project | Env var | Value |
+|---|---|---|
+| `website` | `CMS_API_BASE` | The admin app's public URL, e.g. `https://4b-hub-admin.vercel.app` (no trailing slash) |
+| `admin` | `WEBSITE_DEPLOY_HOOK_URL` | The website project's Deploy Hook URL — Vercel → website project → Settings → Git → Deploy Hooks → Create Hook |
+
+Without `CMS_API_BASE` set, `website/build.py` silently falls back to its hardcoded content (never fails the build — confirmed by an actual local test, not just review). Without `WEBSITE_DEPLOY_HOOK_URL` set, publishing a service in the CMS updates the database but never tells the website to rebuild — it'll only pick up the change on its next unrelated deploy.
+
+---
+
 ## 1. Completed Modules
 
 | Module | Status | Notes |
@@ -19,24 +32,23 @@
 | **Employee Portal — Attendance screen** | ✅ Done | Single screen, live clock, GPS-based check-in/check-out, all required at-a-glance fields |
 | **Trusted Device flow** | ✅ Done | Register → pending → admin approval → re-checked every request |
 | **GPS classification** | ✅ Done | Haversine distance vs. site radius → Inside/Near/Outside, never blocks, notifies admins on Outside |
+| **Attendance (admin-facing)** | ✅ Done | Filterable list (site/status/outside-only), per-record GPS+device detail view, editable notes |
+| **Services CMS + Website Bridge** | ✅ Done | Full Draft/Publish CRUD for Services; publishing triggers a live rebuild of the static website via a Deploy Hook, which fetches the published content from a public read-only API at build time (verified end-to-end with a live test, not just code review — see `docs/CHANGELOG.md`) |
 
 ## 2. Remaining TODO Items (stub pages exist, guarded, not yet functional)
 
 In the agreed build order:
 
-1. **Website Settings** — form UI over the existing `settings.service.ts` (service layer is done; page isn't)
-2. **Media Library** — list/register UI over `MediaAsset` + `database/media.json` seed (file upload mechanism itself needs object storage in most hosting options — see `docs/ADMIN_DEPLOYMENT.md` §4)
-3. **Employees** — CRUD UI (model + repository pattern ready; no `employee.repository.ts` or pages yet)
-4. **Sites** — CRUD UI (same — model ready, no pages)
-5. **Attendance (admin-facing)** — the admin-side list/filter/correction view (the employee-facing check-in/out is done; admins can't yet browse/correct records through UI)
-6. **Services / Industries / Careers / Testimonials CMS** — CRUD UI over the `BaseContentRepository` pattern (repository base class is done; no concrete subclasses or pages yet)
-7. **Quote Requests / Contact Messages / Job Applications** — admin-facing inboxes (data models done; no list/status-change UI)
-8. **Reports** — attendance/late/absent/overtime/recruitment/leads reporting
-9. **Users/Roles management UI** — currently only seed-time role assignment; no in-app "create a second admin" flow
-10. **Shifts + Shift Assignment UI** — needed to unlock late/overtime-minute calculation in attendance
-11. **PWA** — manifest, service worker, offline shell, install prompts (not started)
-12. **Home Page Editor / About Page Editor** — `Page` model with draft/publish exists; no editor UI, and no mechanism yet connecting a published `Page` row back into `website/build.py`'s regeneration step
-13. **Password change flow** — neither admin Users nor Employees have a self-service "change my password" screen yet (Employee model has `mustChangePassword`, unused so far)
+1. **Users/Roles management UI** — currently only seed-time role assignment; no in-app "create a second admin" flow
+2. **Quote Requests / Contact Messages / Job Applications** — admin-facing inboxes (data models done; no list/status-change UI). Also still needs the public website's forms wired to actually submit into these tables (see `database/README.md` — unchanged limitation from Version 1 Final)
+3. **Industries / Careers / Testimonials CMS** — same `BaseContentRepository` + Bridge pattern as Services (done as the reference implementation); these three just need their own repository subclass + form + public API route, following `service.repository.ts` / `serviceManagement.service.ts` / `/api/public/services` as the template
+4. **Home Page Editor / About Page Editor** — `Page` model with draft/publish exists; no editor UI, and no Bridge connecting it to `website/build.py`'s `home_body`/`about_body` yet
+5. **Website Settings** — form UI over the existing `settings.service.ts` (service layer is done; page isn't)
+6. **Media Library** — list/register UI over `MediaAsset` + `database/media.json` seed (file upload mechanism itself needs object storage in most hosting options — see `docs/ADMIN_DEPLOYMENT.md` §4)
+7. **Reports** — attendance/late/absent/overtime/recruitment/leads reporting
+8. **Shifts + Shift Assignment UI** — needed to unlock late/overtime-minute calculation in attendance
+9. **PWA** — manifest, service worker, offline shell, install prompts (not started)
+10. **Password change flow** — neither admin Users nor Employees have a self-service "change my password" screen yet (Employee model has `mustChangePassword`, unused so far)
 
 ## 3. Known Limitations
 

@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 import os
+import json
+import urllib.request
+import urllib.error
 OUT = os.path.dirname(os.path.abspath(__file__))
 
 NAV = """
@@ -218,6 +221,9 @@ I_CCTV = '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap
 I_EVENT = '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V8a4 4 0 014-4h8a4 4 0 014 4v13"/><path d="M9 21v-6h6v6"/></svg>'
 I_VIP = '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>'
 I_CONSULT = '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H8l-4 4z"/></svg>'
+
+# ---------- icon lookup, for mapping CMS icon keys (e.g. "I_SHIELD") back to their SVG markup ----------
+ICON_BY_KEY = {name: value for name, value in list(globals().items()) if name.startswith("I_") and isinstance(value, str)}
 
 # ================================================================
 # HOME
@@ -599,7 +605,15 @@ def service_detail(anchor, icon, title, summary, includes, reverse=False):
   </div>
 </section>"""
 
-SERVICES_DATA = [
+# ---------- The Bridge: fetch published services from the CMS at build time ----------
+# CMS_API_BASE is set as an env var on the website's Vercel project, pointing
+# at the admin app's origin (e.g. "https://4b-hub-admin.vercel.app"). If it's
+# unset, unreachable, or returns no services, we fall back to the hardcoded
+# list below — the site must never fail to build just because the CMS is
+# briefly down. See admin/src/app/api/public/services/route.ts for the other
+# half of this bridge, and admin/src/lib/services/websiteBridge.service.ts
+# for what actually triggers a rebuild when a service is published.
+_FALLBACK_SERVICES_DATA = [
     ("static-guarding", I_SHIELD, "الحراسة الثابتة",
      "أفراد أمن مؤهلون يتمركزون في نقاط ثابتة عند البوابات والمداخل والمخازن، على مدار الساعة أو بمناوبات محددة حسب جدول موقعك.",
      ["فرد أو أكثر حسب حجم الموقع وعدد المداخل", "سجل حضور وتسليم/استلام مناوبة موثق", "زي رسمي موحد ومظهر لائق", "تقرير يومي بحركة الدخول والخروج"]),
@@ -628,6 +642,35 @@ SERVICES_DATA = [
      "تأمين محيط المصنع والمخازن ونقاط الشحن والتفريغ على مدار الوردية، مع بروتوكولات تراعي طبيعة العمليات الصناعية.",
      ["تأمين نقاط الشحن والتفريغ والمخازن", "تفتيش المركبات الداخلة والخارجة", "تنسيق مع نوبات العمل الصناعية المتعددة", "بروتوكول خاص بالمواد أو المعدات الحساسة"]),
 ]
+
+def fetch_services_from_cms():
+    api_base = os.environ.get("CMS_API_BASE", "").rstrip("/")
+    if not api_base:
+        print("CMS_API_BASE not set — using fallback services data.")
+        return _FALLBACK_SERVICES_DATA
+
+    try:
+        req = urllib.request.Request(f"{api_base}/api/public/services", headers={"Accept": "application/json"})
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            payload = json.loads(resp.read().decode("utf-8"))
+    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as e:
+        print(f"CMS fetch failed ({e}) — using fallback services data.")
+        return _FALLBACK_SERVICES_DATA
+
+    services = payload.get("services") or []
+    if not services:
+        print("CMS returned zero published services — using fallback services data.")
+        return _FALLBACK_SERVICES_DATA
+
+    result = []
+    for s in services:
+        icon_svg = ICON_BY_KEY.get(s.get("icon", ""), I_SHIELD)  # unknown icon key -> safe default, never a broken build
+        result.append((s["slug"], icon_svg, s["title"], s["summary"], s["includes"]))
+
+    print(f"Fetched {len(result)} published services from CMS.")
+    return result
+
+SERVICES_DATA = fetch_services_from_cms()
 
 services_body = f"""
 <section class="page-hero">
