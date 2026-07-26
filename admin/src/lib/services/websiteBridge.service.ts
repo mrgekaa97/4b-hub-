@@ -24,8 +24,23 @@ export async function triggerWebsiteRebuild(reason: string): Promise<void> {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
-    await fetch(hookUrl, { method: "POST", signal: controller.signal });
+    const res = await fetch(hookUrl, { method: "POST", signal: controller.signal });
     clearTimeout(timeout);
+
+    // fetch() only throws on network-level failures — a 4xx/5xx response
+    // from Vercel (wrong/expired hook URL, auth issue, etc.) resolves
+    // normally and would otherwise be silently treated as success. Checking
+    // response.ok explicitly is what makes a bad hook URL diagnosable from
+    // logs instead of just "nothing happens and no one knows why."
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      console.error(
+        `[website-bridge] Deploy hook responded with ${res.status} ${res.statusText} (reason: ${reason}). Body: ${body.slice(0, 300)}`
+      );
+      return;
+    }
+
+    console.log(`[website-bridge] Website rebuild triggered successfully (reason: ${reason}, status: ${res.status})`);
   } catch (err) {
     console.error(`[website-bridge] Failed to trigger website rebuild (reason: ${reason}):`, err);
   }

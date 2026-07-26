@@ -23,6 +23,10 @@ export async function GET() {
 
   return NextResponse.json(
     { services: shaped },
-    { headers: { "Cache-Control": "public, max-age=60, stale-while-revalidate=300" } }
+    // Deliberately NOT cached: this endpoint is fetched exactly once per
+    // website build (by build.py), never by real site visitors — caching
+    // here only risks a fresh build picking up stale data seconds after a
+    // publish/unpublish/delete, which defeats the entire point of the Bridge.
+    { headers: { "Cache-Control": "no-store" } }
   );
 }
