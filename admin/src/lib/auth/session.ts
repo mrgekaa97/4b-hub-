@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { randomBytes, createHash } from "node:crypto";
 import { prisma } from "@/lib/prisma";
@@ -42,8 +43,15 @@ export async function createSession(
   });
 }
 
-/** Reads the session cookie (if any) and returns the active User, or null. */
-export async function getSessionUser(): Promise<User | null> {
+/**
+ * Reads the session cookie (if any) and returns the active User, or null.
+ * Wrapped in React's cache() so repeated calls within a single request
+ * (e.g. once from (dashboard)/layout.tsx, again from every page's
+ * requireUser()/requirePermission()) reuse the same result instead of each
+ * re-querying the DB — request-scoped only, never shared across requests or
+ * users, so this changes nothing about who is or isn't authenticated.
+ */
+export const getSessionUser = cache(async (): Promise<User | null> => {
   const token = cookies().get(COOKIE_NAME)?.value;
   if (!token) return null;
 
@@ -59,7 +67,7 @@ export async function getSessionUser(): Promise<User | null> {
     return null;
   }
   return session.user;
-}
+});
 
 /** Revokes the current session (server-side) and clears the cookie. */
 export async function destroySession() {

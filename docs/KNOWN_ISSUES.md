@@ -144,29 +144,27 @@ Common pattern across all of these (except form validation, which lives inside i
 
 ---
 
-## 13. Careers application form does NOT submit anywhere — visual + validation only
+## 13. Careers application form — RESOLVED
 
-**What it is:** `/careers`'s application form (`(public)/careers/_components/ApplicationForm.tsx`, Task #13) has full client-side validation (required-field checks, email format check, error messages) and shows a "application received" success message on valid submit — **but no data is ever sent, stored, or emailed anywhere.** On successful validation the form is just hidden and the success message shown; the entered values are discarded.
+**What it was:** `/careers`'s application form (`(public)/careers/_components/ApplicationForm.tsx`) had full client-side validation and a convincing "application received" success message on valid submit, but no data was ever sent, stored, or emailed anywhere — a faithful port of the legacy static site's own non-functional form, not a migration regression.
 
-**Why this is not a bug:** This is a **faithful, byte-identical port of the legacy static site's existing behavior** — `website/careers.html`'s form has no `action`/`method` attribute and `main.js`'s validation handler always calls `preventDefault()` with no `fetch`/AJAX call anywhere. The legacy site, live today, has never actually submitted this form's data anywhere. This is not a regression introduced by migration — it's carrying over exactly what already exists in production.
+**Resolution:** The full pipeline was built end-to-end. A public `POST /api/public/careers` endpoint follows the 4-layer house architecture (`route.ts` → `application.service.ts` → `application.schema.ts` (Zod, `.strict()`) → `application.repository.ts`), with mandatory server-side validation, honeypot spam protection (a hidden off-screen field in `ApplicationForm.tsx` that real users/screen-readers never reach; the backend silently drops any submission where it arrives filled, responding success-shaped so bots get no signal), and FK-safe anonymous audit logging (`activityLogService.log()` with `userId` omitted → `NULL`, since `ActivityLog.userId` is a nullable foreign key and a fabricated string actor would violate it). `ApplicationForm.tsx` is wired to actually `POST` on successful client validation, with real success/error handling (no more false-success on failure) and a double-submit guard (disabled submit button while in flight). The admin dashboard's `(dashboard)/dashboard/job-applications` listing and `[id]` detail page are built on the shared `<Table>`/`<Badge>` primitives, guarded by `JOB_APPLICATIONS_VIEW`, so submissions are actually reviewable. All verified end-to-end in-browser: real submissions create `JobApplication` rows, and admins can view them.
 
-**Current temporary state:** Anyone filling out and submitting the form on `/careers` sees a convincing "success" message, but their application is not saved or sent anywhere. Explicitly flagging this so it is never mistaken for a working submission pipeline.
-
-**Real fix (dedicated future task, deliberately out of scope for the page-migration series — touches `api/*`):** Needs a new `POST /api/careers` (or similar) route with server-side validation (client-side validation alone is never trustworthy), a `JobApplication` DB write — the Prisma model already exists and matches the form fields exactly (`fullName`, `phone`, `email`, `roleApplied`, `experience`, `message`) — spam/rate-limiting on the public unauthenticated endpoint, and wiring results to the still-stubbed `(dashboard)/dashboard/job-applications` admin page so submissions are actually reviewable.
+**Explicitly still out of scope / deferred (tracked, not forgotten):**
+- **IP-based rate-limiting** on the public endpoint — honeypot is the only spam protection today. **Required before production launch.**
+- **Status-change / edit actions in the admin** — the detail view is currently read-only; there's no way yet to move an application `NEW→REVIEWING→INTERVIEW→REJECTED/HIRED`. Would need a new edit permission plus a mutation endpoint.
 
 ---
 
-## 14. Contact quote-request form does NOT submit anywhere — visual + validation only (highest-traffic instance)
+## 14. Contact quote-request form — RESOLVED (highest-traffic instance)
 
-**What it is:** `/contact`'s quote-request form (`(public)/contact/_components/QuoteForm.tsx`, Task #14) has the same shape of problem as the careers form (item 13): full client-side validation and a convincing "request received" success message on valid submit, but **no data is ever sent, stored, or emailed anywhere** — the form is just hidden and the success message shown; entered values are discarded.
+**What it was:** `/contact`'s quote-request form (`(public)/contact/_components/QuoteForm.tsx`) had the same shape of problem as the careers form (item 13) — full client-side validation and a convincing success message, but nothing was ever saved or sent. This mattered more than item 13 since every "اطلب عرض سعر" (request a quote) link sitewide funnels into this one form.
 
-**Why this is not a bug:** Same reasoning as item 13 — `website/contact.html`'s `#quote` form has no `action`/`method`, and `main.js`'s shared `form[data-validate]` handler never makes a network request for either form. Faithful port of the legacy site's actual live behavior.
+**Resolution:** Same full pipeline, built the same way, against `QuoteRequest`. A public `POST /api/public/quote` endpoint follows the identical 4-layer house architecture (`route.ts` → `quote.service.ts` → `quote.schema.ts` (Zod, `.strict()`) → `quote.repository.ts`), with server-side validation, the same honeypot spam-protection pattern (hidden off-screen field + silent success-shaped drop on the backend), and the same FK-safe anonymous audit logging (`userId` omitted → `NULL`). `QuoteForm.tsx` is wired to actually `POST`, with real success/error handling and a double-submit guard. The admin dashboard's `(dashboard)/dashboard/quote-requests` listing and `[id]` detail page are built on the same shared `<Table>`/`<Badge>` primitives, guarded by `QUOTE_REQUESTS_VIEW`. All verified end-to-end in-browser: real submissions create `QuoteRequest` rows, and admins can view them.
 
-**Why this one matters more:** This is the **highest-traffic non-functional form on the site** — every "اطلب عرض سعر" (request a quote) link sitewide (navbar, mobile-menu, footer, and every page's CTA buttons) points to `/contact#quote`, funneling all quote-intent traffic into this one form. Explicitly flagging so it's never mistaken for a working pipeline, especially since it's the most likely form a real visitor would actually try to use.
-
-**Current temporary state:** Anyone submitting the quote form sees a convincing success message, but nothing is saved or sent.
-
-**Real fix (dedicated future task, deliberately out of scope — touches `api/*`):** Needs a new `POST /api/quote` (or similar) route with server-side validation, a `QuoteRequest` DB write — the Prisma model already matches all 9 form fields exactly (`company`, `contactName`, `phone`, `email`, `industry`, `guardsRange`, `location`, `preferredContact`, `message`) — rate-limiting on the public endpoint, and wiring to the still-unbuilt admin quote-requests dashboard. **Recommend tackling this together with item 13's careers-form backend** in one future task, since both are structurally the same problem (new route + server validation + DB write + rate-limiting + dashboard wiring), just against different models.
+**Explicitly still out of scope / deferred (tracked, not forgotten):**
+- **IP-based rate-limiting** on the public endpoint — honeypot only for now, same as item 13. **Required before production launch**, and arguably more urgent here given this is the highest-traffic form on the site.
+- **Status-change / edit actions in the admin** — read-only detail view only; no way yet to move a request `NEW→CONTACTED→CLOSED`. Same missing piece as item 13 — would need a new edit permission plus a mutation endpoint, and could reasonably be built together with item 13's equivalent since both are structurally the same problem.
 
 ---
 
@@ -181,3 +179,26 @@ Common pattern across all of these (except form validation, which lives inside i
 **Current temporary state:** Codebase currently mixes both patterns — `<Link>` in newer markup (Batch 1/2 homepage sections, final CTA), raw `<a>` everywhere else for internal routes. Both work correctly; this is a code-consistency/prefetching gap, not a functional one.
 
 **Real fix:** A dedicated multi-task `<Link>` sweep, one file (or small group) at a time, with the `/contact#quote` conversion treated as its own verified step rather than folded into a page's general sweep.
+
+---
+
+## 16. Admin dashboard + login are slow — DB latency + redundant auth queries
+
+**What it is:** Admin dashboard pages (~3.5s) and login (~2.3s) feel slow, on both localhost and Vercel. Confirmed via a read-only performance diagnosis with concrete timing measurements, not guesswork.
+
+**Root cause (dominant, still open):** the database is a remote Supabase Postgres instance in AWS eu-west-1 (Ireland). Every query — even a trivial `count()` on a 7-row table — takes ~450-570ms due to network round-trip + pooler overhead to a distant region. **This is not a code defect; it's physical distance.** Login makes ~4 sequential DB round-trips (user lookup, failed-attempt reset, session create, activity log) plus `bcrypt.compare()` at 12 rounds (~325ms, using `bcryptjs`, the pure-JS implementation) ≈ **2.3s total**. The dashboard layout+page chain originally made ~7 sequential round-trips ≈ **3.5s total** (see DONE fix below, which reduced the count but not the per-query latency).
+
+**DONE (fix #1, verified):** wrapped `getSessionUser()` (`session.ts`) and `getUserPermissions()` (`rbac.ts`) in React's `cache()` for request-level deduplication. Before this, `(dashboard)/layout.tsx` and every page's `requireUser()`/`requirePermission()` independently re-ran the exact same session lookup and deep user/role/permissions query — up to 2-3 times per single dashboard page view, with zero request-level caching. `cache()` eliminates every redundant round-trip: each unique query now runs exactly once per request, no matter how many call sites (layout, `requirePermission`, any page's own explicit `getUserPermissions` call) ask for it. **Zero behavior/security change** — every `requirePermission(X)` check still enforces `X` exactly as before, same redirects, same 403s; confirmed via build + unauthenticated-request checks across multiple permission-gated pages. Noticeable speed improvement confirmed. **Key finding that corrected the original plan:** the initial idea of just *deleting* the page-level `requireUser()`/`getUserPermissions()` calls (rather than caching them) turned out to be **unsafe** — a prior read-only investigation found that nearly every dashboard page's auth call enforces a **distinct, page-specific permission** the shared layout never checks (the layout only verifies "is logged in," not "authorized for *this* page"); deleting those calls would have silently opened a real authorization hole. `cache()` was the correct approach precisely because it removes the redundant *DB round-trip* without touching *what gets checked or when*.
+
+**STILL OPEN — root cause, larger, deferred:** fix #1 reduced the *number* of round-trips per request, but each remaining round-trip is still slow, because the ~500ms-per-query cost is distance, not redundancy. The real root-cause fixes remain:
+- Moving the database to a region closer to where the app is served/used.
+- And/or adding a caching layer in front of frequently-read, rarely-changed data.
+Both are larger infrastructure/deployment decisions, not a quick code change — not yet done.
+
+**Also still noted for later:**
+- Parallelizing the sequential login round-trips where dependencies actually allow it (some are inherently sequential — e.g. session creation needs the user's id from the first query — so this has limited upside).
+- `AttendanceRecord` has **no `@@index`** at all, and `dashboardService.getTodaysOperations()` filters `where: { date: today }` on every dashboard load. Harmless now with tiny dev data, but this table grows one row per employee per day, so an unindexed scan will degrade as real attendance data accumulates. Worth an index eventually — not urgent yet.
+
+**Current temporary state:** Fix #1 is live — dashboard/login are noticeably faster, but both remain slower than ideal due to the unresolved DB-region root cause.
+
+**Real fix / planned sequencing:** Fix #1 (this item) is complete. The remaining root-cause options (DB region / caching layer) are deferred as a larger infrastructure decision, to be picked up separately from the day-to-day feature work.

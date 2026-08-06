@@ -1,12 +1,14 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 export function ApplicationForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const successRef = useRef<HTMLDivElement>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = formRef.current;
     if (!form) return;
@@ -38,8 +40,36 @@ export function ApplicationForm() {
       return;
     }
 
-    form.style.display = "none";
-    successRef.current?.classList.add("is-visible");
+    setSubmitError(false);
+    setIsSubmitting(true);
+
+    const data = new FormData(form);
+    const get = (name: string) => (data.get(name) as string | null) ?? "";
+
+    try {
+      const res = await fetch("/api/public/careers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: get("full_name"),
+          phone: get("phone"),
+          email: get("email"),
+          roleApplied: get("role"),
+          experience: get("experience"),
+          message: get("message"),
+          honeypot: get("honeypot"),
+        }),
+      });
+
+      if (!res.ok) throw new Error(`submit failed with status ${res.status}`);
+
+      form.style.display = "none";
+      successRef.current?.classList.add("is-visible");
+    } catch {
+      setSubmitError(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -85,9 +115,35 @@ export function ApplicationForm() {
             ></textarea>
           </div>
         </div>
-        <button type="submit" className="btn btn--primary btn--block" style={{ marginTop: "1.5rem" }}>
+        {/*
+          Honeypot — intentional, documented deviation from verbatim legacy
+          markup (same category as the item-7 mobile-menu CSS patch and
+          QuoteForm's honeypot). Real users/screen-readers never see or reach
+          this field (off-screen, aria-hidden, unfocusable); a bot that
+          blindly fills every input it finds fills it, and the backend
+          (application.service.ts) silently drops any submission where it's
+          non-empty. Field name matches application.schema.ts's `honeypot`
+          key exactly.
+        */}
+        <div
+          style={{ position: "absolute", left: "-9999px", top: "-9999px", width: "1px", height: "1px", overflow: "hidden" }}
+          aria-hidden="true"
+        >
+          <input type="text" name="honeypot" tabIndex={-1} autoComplete="off" defaultValue="" />
+        </div>
+        <button
+          type="submit"
+          className="btn btn--primary btn--block"
+          style={{ marginTop: "1.5rem" }}
+          disabled={isSubmitting}
+        >
           إرسال طلب التقديم
         </button>
+        {submitError && (
+          <p style={{ color: "var(--danger)", fontSize: ".85rem", marginTop: ".8rem" }}>
+            حدث خطأ أثناء إرسال الطلب. برجاء المحاولة مرة أخرى.
+          </p>
+        )}
         <p className="form-note">بإرسال هذا النموذج، أنت توافق على تواصل فريق فور برذرز معك بخصوص هذا التقديم.</p>
       </form>
       <div className="form-success" ref={successRef}>

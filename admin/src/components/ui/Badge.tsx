@@ -37,6 +37,7 @@ export function statusTone(status: string): Tone {
     case "NEW":
     case "UNREAD":
     case "REVIEWING":
+    case "INTERVIEW":
       return "warning";
     case "REJECTED":
     case "REVOKED":
@@ -44,6 +45,8 @@ export function statusTone(status: string): Tone {
     case "ABSENT":
     case "LOCKED":
       return "danger";
+    case "CLOSED":
+      return "neutral";
     default:
       return "neutral";
   }
