@@ -29,8 +29,8 @@ Legend
 | Website Migration | 🟡 | 15% |
 | Home Page | 🔴 | 0% |
 | About | 🔴 | 0% |
-| Services | 🟡 | 40% |
-| Industries | 🔴 | 0% |
+| Services | 🟢 | 100% |
+| Industries | 🟢 | 100% |
 | Testimonials | 🔴 | 0% |
 | Careers | 🔴 | 0% |
 | Contact | 🔴 | 0% |
@@ -47,8 +47,8 @@ Legend
 | RBAC | 🟢 | 100% |
 | Dashboard | 🟢 | 90% |
 | Website Settings | 🟡 | 40% |
-| Services | 🟡 | 60% |
-| Industries | 🔴 | 0% |
+| Services | 🟢 | 100% |
+| Industries | 🟢 | 100% |
 | Testimonials | 🔴 | 0% |
 | Careers | 🔴 | 0% |
 | Media Library | 🔴 | 0% |

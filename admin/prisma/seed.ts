@@ -138,12 +138,21 @@ async function seedServices() {
   for (const [i, s] of services.entries()) {
     await prisma.service.upsert({
       where: { slug: s.slug },
-      update: {},
+      update: {
+        icon: s.icon,
+        title: s.title,
+        summary: s.summary,
+        previewSummary: s.previewSummary,
+        includes: s.includes,
+        status: ContentStatus.PUBLISHED,
+        sortOrder: i,
+      },
       create: {
         slug: s.slug,
         icon: s.icon,
         title: s.title,
         summary: s.summary,
+        previewSummary: s.previewSummary,
         includes: s.includes,
         status: ContentStatus.PUBLISHED, // already live on the real site
         sortOrder: i,
@@ -156,6 +165,8 @@ async function seedServices() {
 async function seedIndustries() {
   const industries = readJson<any[]>("industries.json");
   for (const [i, ind] of industries.entries()) {
+    const existing = await prisma.industry.findFirst({ where: { title: ind.title } });
+    if (existing) continue;
     await prisma.industry.create({
       data: {
         icon: ind.icon,
@@ -172,6 +183,8 @@ async function seedIndustries() {
 async function seedCareers() {
   const careers = readJson<any[]>("careers.json");
   for (const c of careers) {
+    const existing = await prisma.careerPosting.findFirst({ where: { title: c.title } });
+    if (existing) continue;
     await prisma.careerPosting.create({
       data: {
         title: c.title,
@@ -189,6 +202,11 @@ async function seedCareers() {
 async function seedSampleRequests() {
   const { requests } = readJson<{ requests: any[] }>("quote-requests.json");
   for (const r of requests) {
+    const submittedAt = new Date(r.submitted_at);
+    const existing = await prisma.quoteRequest.findFirst({
+      where: { company: r.company, contactName: r.contact_name, submittedAt },
+    });
+    if (existing) continue;
     await prisma.quoteRequest.create({
       data: {
         company: r.company,
@@ -201,13 +219,18 @@ async function seedSampleRequests() {
         preferredContact: r.preferred_contact,
         message: r.message,
         status: r.status.toUpperCase(),
-        submittedAt: new Date(r.submitted_at),
+        submittedAt,
       },
     });
   }
 
   const { messages } = readJson<{ messages: any[] }>("contact-messages.json");
   for (const m of messages) {
+    const submittedAt = new Date(m.submitted_at);
+    const existing = await prisma.contactMessage.findFirst({
+      where: { name: m.name, email: m.email, submittedAt },
+    });
+    if (existing) continue;
     await prisma.contactMessage.create({
       data: {
         name: m.name,
@@ -216,7 +239,7 @@ async function seedSampleRequests() {
         subject: m.subject,
         message: m.message,
         status: m.status.toUpperCase(),
-        submittedAt: new Date(m.submitted_at),
+        submittedAt,
       },
     });
   }

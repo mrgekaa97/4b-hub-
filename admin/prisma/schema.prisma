@@ -251,6 +251,7 @@ model Service {
   icon      String        // key into shared/icons/icon-set.json, e.g. "I_SHIELD"
   title     String
   summary   String
+  previewSummary String?  // short hand-written copy for preview cards, distinct from the longer `summary` used in detail sections
   includes  Json          // string[]
   status    ContentStatus @default(DRAFT)
   sortOrder Int           @default(0)

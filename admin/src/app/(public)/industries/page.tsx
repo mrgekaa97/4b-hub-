@@ -1,4 +1,11 @@
-export default function IndustriesPage() {
+import { industryRepository } from "@/lib/repositories/industry.repository";
+import { Icon } from "../_components/Icon";
+
+export const revalidate = 60;
+
+export default async function IndustriesPage() {
+  const industries = await industryRepository.findAllPublished();
+
   return (
     <main id="main-content">
       <section className="page-hero">
@@ -17,141 +24,19 @@ export default function IndustriesPage() {
       <section className="section">
         <div className="container">
           <div className="grid grid--4 reveal">
-            <div className="card">
-              <div className="card-icon">
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 21V10l5 3V10l5 3V7l6 4v10H3z" />
-                </svg>
+            {industries.map((i) => (
+              <div className="card" key={i.id}>
+                <Icon name={i.icon} />
+                <h3 className="h3">{i.title}</h3>
+                <p>{i.description}</p>
+                <a href="/contact#quote" className="card-link">
+                  اطلب استشارة لهذا القطاع{" "}
+                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </a>
               </div>
-              <h3 className="h3">المصانع</h3>
-              <p>تأمين المحيط الخارجي، بوابات الشحن والتفريغ، والمخازن على مدار الوردية.</p>
-              <a href="/contact#quote" className="card-link">
-                اطلب استشارة لهذا القطاع{" "}
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
-              </a>
-            </div>
-
-            <div className="card">
-              <div className="card-icon">
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="4" y="3" width="16" height="18" />
-                  <path d="M12 8v6M9 11h6" />
-                </svg>
-              </div>
-              <h3 className="h3">المستشفيات</h3>
-              <p>حراسة تراعي خصوصية المرضى وتحكمًا دقيقًا في الدخول للأقسام الحساسة.</p>
-              <a href="/contact#quote" className="card-link">
-                اطلب استشارة لهذا القطاع{" "}
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
-              </a>
-            </div>
-
-            <div className="card">
-              <div className="card-icon">
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 21V9l9-6 9 6v12" />
-                  <path d="M9 21v-6h6v6" />
-                </svg>
-              </div>
-              <h3 className="h3">الفنادق</h3>
-              <p>حضور لائق عند المدخل الرئيسي مع حراسة مواقف السيارات والمرافق الخلفية.</p>
-              <a href="/contact#quote" className="card-link">
-                اطلب استشارة لهذا القطاع{" "}
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
-              </a>
-            </div>
-
-            <div className="card">
-              <div className="card-icon">
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 11l9-8 9 8" />
-                  <path d="M5 10v10h14V10" />
-                </svg>
-              </div>
-              <h3 className="h3">المجمعات السكنية</h3>
-              <p>بوابات دخول، دوريات ليلية، وتسجيل حركة الزوار والموردين.</p>
-              <a href="/contact#quote" className="card-link">
-                اطلب استشارة لهذا القطاع{" "}
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
-              </a>
-            </div>
-
-            <div className="card">
-              <div className="card-icon">
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="5" y="2" width="14" height="20" />
-                  <path d="M9 7h1M14 7h1M9 12h1M14 12h1M9 17h1M14 17h1" />
-                </svg>
-              </div>
-              <h3 className="h3">المباني التجارية والإدارية</h3>
-              <p>تنظيم حركة الموظفين والزوار وتأمين مواقف السيارات والمصاعد.</p>
-              <a href="/contact#quote" className="card-link">
-                اطلب استشارة لهذا القطاع{" "}
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
-              </a>
-            </div>
-
-            <div className="card">
-              <div className="card-icon">
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 21V9l9-5 9 5v12" />
-                  <path d="M3 12h18" />
-                </svg>
-              </div>
-              <h3 className="h3">المستودعات ومراكز التوزيع</h3>
-              <p>تأمين نقاط الشحن ومراقبة حركة البضائع والمخزون.</p>
-              <a href="/contact#quote" className="card-link">
-                اطلب استشارة لهذا القطاع{" "}
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
-              </a>
-            </div>
-
-            <div className="card">
-              <div className="card-icon">
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M2 9l10-5 10 5-10 5-10-5z" />
-                  <path d="M6 12v5c3 2 9 2 12 0v-5" />
-                </svg>
-              </div>
-              <h3 className="h3">المؤسسات التعليمية</h3>
-              <p>تحكم صارم في دخول وخروج الطلاب وحراسة محيط المدرسة أو الجامعة.</p>
-              <a href="/contact#quote" className="card-link">
-                اطلب استشارة لهذا القطاع{" "}
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
-              </a>
-            </div>
-
-            <div className="card">
-              <div className="card-icon">
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2l9 4H3z" />
-                  <path d="M5 10v8M9 10v8M15 10v8M19 10v8" />
-                  <path d="M3 21h18" />
-                </svg>
-              </div>
-              <h3 className="h3">المنشآت الحكومية</h3>
-              <p>بروتوكولات دخول متوافقة مع اشتراطات الجهات الحكومية والتنسيق الأمني الرسمي.</p>
-              <a href="/contact#quote" className="card-link">
-                اطلب استشارة لهذا القطاع{" "}
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
-              </a>
-            </div>
+            ))}
           </div>
         </div>
       </section>

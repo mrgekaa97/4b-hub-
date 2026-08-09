@@ -120,27 +120,19 @@ Common pattern across all of these (except form validation, which lives inside i
 
 ---
 
-## 11. `/services` — strong candidate for CMS wiring (not implemented)
+## 11. `/services` — CMS wiring — RESOLVED
 
-**What it is:** `(public)/services/page.tsx` (migrated in Task #11) hardcodes 9 services verbatim from the legacy site, each duplicated twice: once as a preview card (icon, title, short description) in the top grid, and once again as a full detail section (icon, title, lead paragraph, 4-item feature list) further down the page.
+**What it was:** `(public)/services/page.tsx` hardcoded 9 services verbatim from the legacy site, each duplicated twice: once as a preview card (icon, title, short description) in the top grid, and once again as a full detail section (icon, title, lead paragraph, 4-item feature list) further down the page — no database involvement at all, editing a service meant editing two separate places in the same file.
 
-**Why flagged:** The 9 services map almost 1:1 onto the existing `Service` Prisma model (`admin/prisma/schema.prisma`) — each detail section's anchor `id` (`static-guarding`, `mobile-patrol`, etc.) is exactly a `slug`, the `<h2>` is `title`, the lead paragraph is `summary`, the 4-item check-list is `includes` (already typed as `Json // string[]`), and the SVG icon corresponds to an `icon` key. This is the cleanest content-to-schema match of any page migrated so far.
-
-**Current temporary state:** Both the preview cards and the detail sections are hand-duplicated static JSX — editing a service today means editing two separate places in the same file, with no database involvement at all.
-
-**Real fix (future CMS/improvements phase, not now):** Once the Services CMS module (already partially built per `docs/PROJECT_STATUS.md`) is wired to the public site, both the preview grid and the detail sections should derive from the same 9 `Service` records instead of being duplicated by hand — eliminating the two-places-to-edit problem and making services genuinely CMS-managed on the public page, not just in the admin dashboard.
+**Resolution:** A `previewSummary` field was added to the `Service` model (short preview-card copy, distinct from `summary`) via a Prisma migration, and a shared icon registry (`(public)/_components/Icon.tsx`) was built to map DB `icon` keys to the SVGs in `shared/icons/icon-set.json`. `(public)/services/page.tsx` now derives both the preview grid and the detail sections from a single `serviceRepository.findAllPublished()` call, with ISR (`revalidate = 60`) so publish/edit/unpublish changes in the CMS appear on the public page within a minute, without a redeploy.
 
 ---
 
-## 12. `/industries` — also CMS-shaped, simpler than Services (not implemented)
+## 12. `/industries` — CMS wiring — RESOLVED
 
-**What it is:** `(public)/industries/page.tsx` (migrated in Task #12) hardcodes 8 industry cards verbatim from the legacy site (icon, title, description each).
+**What it was:** `(public)/industries/page.tsx` hardcoded 8 industry cards verbatim from the legacy site (icon, title, description each), with no database involvement and no Industries CMS module at all — the admin dashboard only had a permission-gated placeholder stub.
 
-**Why flagged:** The 8 cards map cleanly onto the existing `Industry` Prisma model (`admin/prisma/schema.prisma`) — `icon`, `title`, `description` correspond directly to the model's fields. Simpler than the Services case (item 11): each industry appears exactly once on this page, so there's no hand-duplication problem to solve — just a straight hardcoded-to-CMS swap once wired.
-
-**Current temporary state:** The 8 cards are static JSX with no database involvement.
-
-**Real fix (future CMS/improvements phase, not now):** Once an Industries CMS module is wired to the public site, the card grid should render from `Industry` records instead of hardcoded JSX.
+**Resolution:** Industries was built end-to-end from scratch: `industry.schema.ts` / `industry.repository.ts` (extends `BaseContentRepository<Industry>`) / `industryManagement.service.ts`, 4 API routes under `/api/industries` guarded by `INDUSTRIES_MANAGE`, and a full admin CMS (`IndustryForm`, `IndustriesTable`, list/new/edit pages) replacing the old stub. `(public)/industries/page.tsx` now renders from `industryRepository.findAllPublished()` with ISR (`revalidate = 60`). Unlike Services, `industryManagementService` deliberately does not call `triggerWebsiteRebuild` — there's no legacy bridge route for Industries, and the public page refreshes via ISR instead.
 
 ---
 
