@@ -1,0 +1,20 @@
+/** Same 17 icons used on the live site (shared/icons/icon-set.json) — kept as a small label map since Arabic labels aren't part of that JSON. */
+export const ICON_OPTIONS: { key: string; label: string }[] = [
+  { key: "I_SHIELD", label: "درع (حراسة عامة)" },
+  { key: "I_PATROL", label: "دورية" },
+  { key: "I_CCTV", label: "مراقبة" },
+  { key: "I_BUILDING", label: "مبنى" },
+  { key: "I_EVENT", label: "فعالية" },
+  { key: "I_VIP", label: "حماية شخصية" },
+  { key: "I_CONSULT", label: "استشارات" },
+  { key: "I_HOME", label: "سكني" },
+  { key: "I_FACTORY", label: "مصنع" },
+  { key: "I_HOSPITAL", label: "مستشفى" },
+  { key: "I_HOTEL", label: "فندق" },
+  { key: "I_WAREHOUSE", label: "مستودع" },
+  { key: "I_SCHOOL", label: "تعليمي" },
+  { key: "I_GOV", label: "حكومي" },
+  { key: "I_CLOCK", label: "ساعة" },
+  { key: "I_CHECK", label: "علامة صح" },
+  { key: "I_ARROW", label: "سهم" },
+];

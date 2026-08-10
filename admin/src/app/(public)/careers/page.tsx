@@ -1,6 +1,11 @@
 import { ApplicationForm } from "./_components/ApplicationForm";
+import { careerRepository } from "@/lib/repositories/career.repository";
 
-export default function CareersPage() {
+export const revalidate = 60;
+
+export default async function CareersPage() {
+  const careers = await careerRepository.findAllPublished();
+
   return (
     <main id="main-content">
       <section className="page-hero">
@@ -107,102 +112,28 @@ export default function CareersPage() {
             <h2 className="h2">الأدوار المفتوحة حاليًا</h2>
           </div>
           <div className="grid grid--2">
-            <div className="card">
-              <h3 className="h3">فرد أمن وحراسة</h3>
-              <p style={{ marginTop: ".5rem" }}>تأمين مواقع ثابتة أو دوريات متحركة حسب التكليف.</p>
-              <ul className="check-list" style={{ marginTop: "1rem" }}>
-                <li>
+            {careers.map((c) => (
+              <div className="card" key={c.id}>
+                <h3 className="h3">{c.title}</h3>
+                <p style={{ marginTop: ".5rem" }}>{c.description}</p>
+                <ul className="check-list" style={{ marginTop: "1rem" }}>
+                  {(c.requirements as string[]).map((item, i) => (
+                    <li key={i}>
+                      <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <a href="#apply" className="card-link">
+                  قدّم الآن{" "}
                   <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
+                    <path d="M5 12h14M13 6l6 6-6 6" />
                   </svg>
-                  <span>اللياقة البدنية وحسن السيرة والسلوك</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  <span>القدرة على العمل بنظام المناوبات</span>
-                </li>
-              </ul>
-              <a href="#apply" className="card-link">
-                قدّم الآن{" "}
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
-              </a>
-            </div>
-            <div className="card">
-              <h3 className="h3">مشرف موقع</h3>
-              <p style={{ marginTop: ".5rem" }}>إدارة فريق أمن في موقع واحد أو أكثر ومتابعة التقارير اليومية.</p>
-              <ul className="check-list" style={{ marginTop: "1rem" }}>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  <span>خبرة سابقة لا تقل عن 3 سنوات في الحراسة</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  <span>مهارات تواصل وكتابة تقارير جيدة</span>
-                </li>
-              </ul>
-              <a href="#apply" className="card-link">
-                قدّم الآن{" "}
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
-              </a>
-            </div>
-            <div className="card">
-              <h3 className="h3">ضابط تطوير أعمال</h3>
-              <p style={{ marginTop: ".5rem" }}>استقطاب عملاء B2B جدد ومتابعة تجديد العقود القائمة.</p>
-              <ul className="check-list" style={{ marginTop: "1rem" }}>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  <span>خبرة مبيعات B2B، يُفضَّل في قطاع الخدمات الأمنية</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  <span>قدرة على التواصل مع مدراء المرافق والمشتريات</span>
-                </li>
-              </ul>
-              <a href="#apply" className="card-link">
-                قدّم الآن{" "}
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
-              </a>
-            </div>
-            <div className="card">
-              <h3 className="h3">مدير عمليات ميدانية</h3>
-              <p style={{ marginTop: ".5rem" }}>الإشراف على مشرفي المواقع المتعددة وضبط جودة الأداء.</p>
-              <ul className="check-list" style={{ marginTop: "1rem" }}>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  <span>خبرة إدارية في قطاع الحراسة لا تقل عن 5 سنوات</span>
-                </li>
-                <li>
-                  <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  <span>القدرة على التنقل بين المواقع بانتظام</span>
-                </li>
-              </ul>
-              <a href="#apply" className="card-link">
-                قدّم الآن{" "}
-                <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
-              </a>
-            </div>
+                </a>
+              </div>
+            ))}
           </div>
         </div>
       </section>
