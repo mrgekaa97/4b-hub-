@@ -42,12 +42,19 @@ export const settingsService = {
 
   /** Bulk-set convenience for a settings-page form submitting many fields at once. */
   async setMany(
-    entries: Array<{ key: string; value: unknown; group: string; label?: string }>,
+    entries: Array<{ key: string; value: unknown; group: string; valueType?: SettingValueType; label?: string }>,
     actorId?: string
   ) {
     const results = [];
     for (const entry of entries) {
-      results.push(await this.set(entry.key, entry.value, { group: entry.group, label: entry.label, actorId }));
+      results.push(
+        await this.set(entry.key, entry.value, {
+          group: entry.group,
+          valueType: entry.valueType,
+          label: entry.label,
+          actorId,
+        })
+      );
     }
     return results;
   },
