@@ -1,6 +1,16 @@
 import Link from "next/link";
+import { serviceRepository } from "@/lib/repositories/service.repository";
+import { industryRepository } from "@/lib/repositories/industry.repository";
+import { testimonialRepository } from "@/lib/repositories/testimonial.repository";
+import { Icon } from "./_components/Icon";
 
-export default function PublicHomePage() {
+export const revalidate = 60;
+
+export default async function PublicHomePage() {
+  const services = await serviceRepository.findAllPublished();
+  const industries = await industryRepository.findAllPublished();
+  const testimonials = await testimonialRepository.findAllPublished();
+
   return (
     <>
     <section className="hero">
@@ -195,53 +205,19 @@ export default function PublicHomePage() {
           <p className="lead">من الحراسة الثابتة إلى الدوريات المتحركة، نبني الخطة الأمنية حول طبيعة موقعك الفعلية.</p>
         </div>
         <div className="grid grid--3 reveal">
-          <div className="card">
-            <div className="card-icon">
-              <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5z" />
-              </svg>
+          {services.slice(0, 3).map((s) => (
+            <div className="card" key={s.slug}>
+              <Icon name={s.icon} />
+              <h3 className="h3">{s.title}</h3>
+              <p>{s.previewSummary}</p>
+              <Link href={`/services#${s.slug}`} className="card-link">
+                تفاصيل الخدمة{" "}
+                <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12h14M13 6l6 6-6 6" />
+                </svg>
+              </Link>
             </div>
-            <h3 className="h3">الحراسة الثابتة</h3>
-            <p>أفراد أمن مؤهلون في نقاط ثابتة داخل وخارج الموقع، على مدار الساعة.</p>
-            <Link href="/services#static-guarding" className="card-link">
-              تفاصيل الخدمة{" "}
-              <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14M13 6l6 6-6 6" />
-              </svg>
-            </Link>
-          </div>
-          <div className="card">
-            <div className="card-icon">
-              <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="8" r="3" />
-                <path d="M5 21c0-4 3-6 7-6s7 2 7 6" />
-              </svg>
-            </div>
-            <h3 className="h3">الدوريات المتحركة</h3>
-            <p>جولات تفتيش منتظمة وموثقة لمواقع متعددة أو مساحات واسعة.</p>
-            <Link href="/services#mobile-patrol" className="card-link">
-              تفاصيل الخدمة{" "}
-              <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14M13 6l6 6-6 6" />
-              </svg>
-            </Link>
-          </div>
-          <div className="card">
-            <div className="card-icon">
-              <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 8h11l4-3v10l-4-3H3z" />
-                <path d="M6 8v5M2 21h10" />
-              </svg>
-            </div>
-            <h3 className="h3">المراقبة والتحكم</h3>
-            <p>إدارة غرف المراقبة وربط أنظمة الكاميرات بفريق الاستجابة الميداني.</p>
-            <Link href="/services#cctv" className="card-link">
-              تفاصيل الخدمة{" "}
-              <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14M13 6l6 6-6 6" />
-              </svg>
-            </Link>
-          </div>
+          ))}
         </div>
       </div>
     </section>
@@ -253,53 +229,15 @@ export default function PublicHomePage() {
           <h2 className="h2">خبرة متخصصة في القطاعات عالية الحساسية</h2>
         </div>
         <div className="grid grid--4 reveal">
-          <div className="card">
-            <div className="card-icon">
-              <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 21V10l5 3V10l5 3V7l6 4v10H3z" />
-              </svg>
+          {industries.slice(0, 4).map((i) => (
+            <div className="card" key={i.id}>
+              <Icon name={i.icon} />
+              <h3 className="h3" style={{ fontSize: "1.05rem" }}>
+                {i.title}
+              </h3>
+              <p style={{ fontSize: ".88rem" }}>{i.description}</p>
             </div>
-            <h3 className="h3" style={{ fontSize: "1.05rem" }}>
-              المصانع
-            </h3>
-            <p style={{ fontSize: ".88rem" }}>تأمين محيط ومداخل ومخازن.</p>
-          </div>
-          <div className="card">
-            <div className="card-icon">
-              <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="4" y="3" width="16" height="18" />
-                <path d="M12 8v6M9 11h6" />
-              </svg>
-            </div>
-            <h3 className="h3" style={{ fontSize: "1.05rem" }}>
-              المستشفيات
-            </h3>
-            <p style={{ fontSize: ".88rem" }}>حراسة بروتوكولات حساسة وخصوصية المرضى.</p>
-          </div>
-          <div className="card">
-            <div className="card-icon">
-              <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 21V9l9-6 9 6v12" />
-                <path d="M9 21v-6h6v6" />
-              </svg>
-            </div>
-            <h3 className="h3" style={{ fontSize: "1.05rem" }}>
-              الفنادق
-            </h3>
-            <p style={{ fontSize: ".88rem" }}>حضور لائق يحفظ تجربة الضيف.</p>
-          </div>
-          <div className="card">
-            <div className="card-icon">
-              <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 11l9-8 9 8" />
-                <path d="M5 10v10h14V10" />
-              </svg>
-            </div>
-            <h3 className="h3" style={{ fontSize: "1.05rem" }}>
-              المجمعات السكنية
-            </h3>
-            <p style={{ fontSize: ".88rem" }}>بوابات، دوريات، وتحكم دخول صارم.</p>
-          </div>
+          ))}
         </div>
         <div style={{ textAlign: "center", marginTop: "2.5rem" }} className="reveal">
           <Link href="/industries" className="btn btn--ghost">
@@ -354,40 +292,18 @@ export default function PublicHomePage() {
           <h2 className="h2">شركات تثق في فور برذرز</h2>
         </div>
         <div className="testi-track" style={{ maxWidth: "760px", marginInline: "auto" }}>
-          <div className="testi-slide is-active">
-            <p className="testi-quote">
-              التزام فريق فور برذرز بمواعيد الدوريات وتوثيق كل حادثة صغيرة أعطانا راحة بال حقيقية داخل المصنع.
-            </p>
-            <div className="testi-meta">
-              <div className="testi-avatar">م</div>
-              <div>
-                <div className="testi-name">مدير المصنع</div>
-                <div className="testi-role">مصنع صناعات غذائية — العاشر من رمضان</div>
+          {testimonials.map((t, i) => (
+            <div className={`testi-slide${i === 0 ? " is-active" : ""}`} key={t.id}>
+              <p className="testi-quote">{t.quoteText}</p>
+              <div className="testi-meta">
+                <div className="testi-avatar">{t.avatarInitial}</div>
+                <div>
+                  <div className="testi-name">{t.clientName}</div>
+                  <div className="testi-role">{t.clientCompany}</div>
+                </div>
               </div>
             </div>
-          </div>
-          <div className="testi-slide">
-            <p className="testi-quote">
-              التعامل مع فريق الأمن في المستشفى احترافي وهادئ، وهذا بالضبط ما نحتاجه في بيئة طبية حساسة.
-            </p>
-            <div className="testi-meta">
-              <div className="testi-avatar">هـ</div>
-              <div>
-                <div className="testi-name">مدير العمليات</div>
-                <div className="testi-role">مستشفى خاص — القاهرة الجديدة</div>
-              </div>
-            </div>
-          </div>
-          <div className="testi-slide">
-            <p className="testi-quote">بدأنا العقد خلال أقل من أسبوع، والتقارير اليومية بتوصلنا بانتظام. تعامل مؤسسي فعلاً.</p>
-            <div className="testi-meta">
-              <div className="testi-avatar">ك</div>
-              <div>
-                <div className="testi-name">مدير المرافق</div>
-                <div className="testi-role">كمبوند سكني — التجمع الخامس</div>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
         <div className="testi-dots" style={{ justifyContent: "center" }}></div>
       </div>
