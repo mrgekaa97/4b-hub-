@@ -46,7 +46,7 @@ export default function PublicLayout({
               />
             </picture>
             <span className="brand-word">
-              4 BROTHERS
+              <span dir="ltr">4 BROTHERS</span>
               <small>فور برذرز للأمن والحراسات</small>
             </span>
           </a>
@@ -129,7 +129,7 @@ export default function PublicLayout({
                   />
                 </picture>
                 <span className="brand-word">
-                  4 BROTHERS
+                  <span dir="ltr">4 BROTHERS</span>
                   <small>فور برذرز للأمن والحراسات</small>
                 </span>
               </a>
@@ -203,8 +203,8 @@ export default function PublicLayout({
             </div>
           </div>
           <div className="footer-bottom">
-            <span>© 2026 فور برذرز للأمن والحراسات. جميع الحقوق محفوظة.</span>
-            <span>Built for 4 Brothers Security &amp; Guarding — Egypt</span>
+            <span><span dir="ltr">© 2026</span> فور برذرز للأمن والحراسات. جميع الحقوق محفوظة.</span>
+            <span dir="ltr">Built for 4 Brothers Security &amp; Guarding — Egypt</span>
           </div>
         </div>
       </footer>

@@ -93,7 +93,7 @@ export default function ContactPage() {
                 لأي طارئ أمني في موقع متعاقد معنا حاليًا، اتصل مباشرة على الرقم التالي في أي وقت.
               </p>
             </div>
-            <a href="tel:+201000000000" className="num">
+            <a href="tel:+201000000000" className="num" dir="ltr">
               +20 100 000 0000
             </a>
           </div>

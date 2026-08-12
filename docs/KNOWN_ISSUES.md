@@ -194,3 +194,13 @@ Both are larger infrastructure/deployment decisions, not a quick code change —
 **Current temporary state:** Fix #1 is live — dashboard/login are noticeably faster, but both remain slower than ideal due to the unresolved DB-region root cause.
 
 **Real fix / planned sequencing:** Fix #1 (this item) is complete. The remaining root-cause options (DB region / caching layer) are deferred as a larger infrastructure decision, to be picked up separately from the day-to-day feature work.
+
+---
+
+## 17. Legacy `website/` shows RTL-flipped brand name ("4 Brothers Security & Guarding")
+
+**What it is:** The bare English company name flips under RTL (renders as "...GUARDING 4") in the legacy `website/*.html` static site. Source: `lib/constants/branding.ts`'s `BRANDING.companyName` is the literal string; live occurrences are in `website/*.html` (meta tags, JSON-LD, and one visible `<span>` per page).
+
+**Why deferred:** Confirmed via search **not present** in the new `(public)` Next.js pages — those were already fixed (see item on RTL logo/text ordering). Only affects the legacy static site, which is slated for removal.
+
+**Real fix:** Resolve when the legacy `website/` directory is decommissioned — no fix needed in the Next.js app.
