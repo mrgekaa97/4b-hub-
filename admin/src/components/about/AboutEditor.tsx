@@ -104,6 +104,10 @@ export function AboutEditor({ initial }: AboutEditorProps) {
         if (Array.isArray(msgs) && msgs.length) fieldErrors[key] = msgs[0] as string;
       }
       setErrors(fieldErrors);
+
+      if (Array.isArray(data.issues?.formErrors) && data.issues.formErrors.length) {
+        setFormError(data.issues.formErrors.join("، "));
+      }
     } else {
       setFormError(data.error ?? "حدث خطأ غير متوقع");
     }
