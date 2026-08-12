@@ -46,7 +46,7 @@ Legend
 | Authentication | 🟢 | 100% |
 | RBAC | 🟢 | 100% |
 | Dashboard | 🟢 | 90% |
-| Website Settings | 🟡 | 40% |
+| Website Settings | 🟢 | 100% |
 | Services | 🟢 | 100% |
 | Industries | 🟢 | 100% |
 | Testimonials | 🔴 | 0% |

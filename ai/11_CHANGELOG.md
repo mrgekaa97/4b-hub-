@@ -68,6 +68,32 @@ Industries, built from scratch end-to-end:
 
 ---
 
+### Website Settings — Dynamic CMS Wiring Complete
+
+Website Settings is now fully wired end-to-end: database → admin CMS → public site, using the existing generic `Setting` key-value model's "general" group (13 `site.*` keys, already seeded).
+
+Backend:
+
+- `PATCH /api/settings/general` + `settings.schema.ts` (`.strict()`, the 13 `site.*` keys plus the nested `site.social_links` object), guarded by `WEBSITE_SETTINGS_MANAGE`.
+- `settingsService.setMany()` widened to accept an optional `valueType` per entry, so `site.social_links` saves correctly as `JSON` instead of silently defaulting to `STRING`.
+- `9ab250d`
+
+Dashboard form:
+
+- Stub replaced with a real form (`SettingsForm.tsx`), driven by a field-config constant covering company/contact/legal fields plus the social-links sub-object.
+- Fixed a silent-failure gap: `applyErrorResponse` (in both `SettingsForm.tsx` and `AboutEditor.tsx`) only ever read `data.issues.fieldErrors`, never `formErrors` — so a malformed body or a `.strict()` unrecognized-key violation produced no visible feedback at all. Fixed identically in both copies.
+- `0881c08`
+
+Public-site wiring:
+
+- `(public)/layout.tsx` and `(public)/contact/page.tsx` now read company name, phone, email, address, working hours, emergency note, social links, and registry/license numbers from `settingsService.getGroupAsMap("general")`, with per-key fallback to seed defaults for empty values — mirroring the About page's `revalidate = 60` pattern.
+- Gap strings (footer tagline, copyright/"Built for" lines) and the stylized "4 BROTHERS" logo mark stay hardcoded — no matching key, or a deliberate brand-mark exception.
+- `c976a6d`
+
+Separately, `c74cc9d` fixed RTL ordering of Latin/numeric brand text (logo mark, copyright line, a missed phone link) on the same pages — a related bug found during this work, not itself Website Settings scope. One remaining flipped-logo occurrence exists only in the legacy `website/*.html` static site — tracked as `docs/KNOWN_ISSUES.md` item 17, deferred to legacy-site decommissioning.
+
+---
+
 ### Next Steps
 
 - Services Migration
