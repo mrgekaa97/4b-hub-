@@ -210,12 +210,12 @@ export default async function PublicHomePage() {
               <Icon name={s.icon} />
               <h3 className="h3">{s.title}</h3>
               <p>{s.previewSummary}</p>
-              <Link href={`/services#${s.slug}`} className="card-link">
+              <a href={`/services#${s.slug}`} className="card-link">
                 تفاصيل الخدمة{" "}
                 <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M5 12h14M13 6l6 6-6 6" />
                 </svg>
-              </Link>
+              </a>
             </div>
           ))}
         </div>
@@ -240,12 +240,12 @@ export default async function PublicHomePage() {
           ))}
         </div>
         <div style={{ textAlign: "center", marginTop: "2.5rem" }} className="reveal">
-          <Link href="/industries" className="btn btn--ghost">
+          <a href="/industries" className="btn btn--ghost">
             عرض جميع القطاعات{" "}
             <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 12h14M13 6l6 6-6 6" />
             </svg>
-          </Link>
+          </a>
         </div>
       </div>
     </section>
