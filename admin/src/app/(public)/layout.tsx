@@ -4,12 +4,18 @@ import { FaqAccordion } from "./_components/FaqAccordion";
 import { TestimonialSlider } from "./_components/TestimonialSlider";
 import { StatCounters } from "./_components/StatCounters";
 import { ActiveNavLink } from "./_components/ActiveNavLink";
+import { settingsService } from "@/lib/services/settings.service";
+import { getSetting, getSocialLink } from "@/lib/constants/settings-fallback";
 
-export default function PublicLayout({
+export const revalidate = 60;
+
+export default async function PublicLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const settings = await settingsService.getGroupAsMap("general");
+
   return (
     <>
       <link rel="stylesheet" href="/legacy/site.css" />
@@ -34,12 +40,12 @@ export default function PublicLayout({
       </a>
       <nav className="navbar">
         <div className="container">
-          <a href="/" className="brand" aria-label="فور برذرز للأمن والحراسات — الصفحة الرئيسية">
+          <a href="/" className="brand" aria-label={`${getSetting(settings, "site.company_name_ar")} — الصفحة الرئيسية`}>
             <picture>
               <source srcSet="/uploads/media/logo-nav.webp" type="image/webp" />
               <img
                 src="/uploads/media/logo-nav.png"
-                alt="شعار فور برذرز للأمن والحراسات"
+                alt={`شعار ${getSetting(settings, "site.company_name_ar")}`}
                 width={38}
                 height={38}
                 loading="eager"
@@ -47,7 +53,7 @@ export default function PublicLayout({
             </picture>
             <span className="brand-word">
               <span dir="ltr">4 BROTHERS</span>
-              <small>فور برذرز للأمن والحراسات</small>
+              <small>{getSetting(settings, "site.company_name_ar")}</small>
             </span>
           </a>
           <div className="nav-links">
@@ -116,13 +122,13 @@ export default function PublicLayout({
                 href="/"
                 className="brand"
                 style={{ marginBottom: "1rem" }}
-                aria-label="فور برذرز للأمن والحراسات — الصفحة الرئيسية"
+                aria-label={`${getSetting(settings, "site.company_name_ar")} — الصفحة الرئيسية`}
               >
                 <picture>
                   <source srcSet="/uploads/media/logo-nav.webp" type="image/webp" />
                   <img
                     src="/uploads/media/logo-nav.png"
-                    alt="شعار فور برذرز للأمن والحراسات"
+                    alt={`شعار ${getSetting(settings, "site.company_name_ar")}`}
                     width={34}
                     height={34}
                     loading="lazy"
@@ -130,24 +136,24 @@ export default function PublicLayout({
                 </picture>
                 <span className="brand-word">
                   <span dir="ltr">4 BROTHERS</span>
-                  <small>فور برذرز للأمن والحراسات</small>
+                  <small>{getSetting(settings, "site.company_name_ar")}</small>
                 </span>
               </a>
               <p style={{ color: "var(--steel)", fontSize: ".9rem", maxWidth: "32ch" }}>
                 شركة مصرية متخصصة في توفير خدمات الأمن والحراسة للشركات والمنشآت الصناعية والطبية والفندقية والسكنية.
               </p>
               <div className="social-row">
-                <a href="#" aria-label="فيسبوك">
+                <a href={getSocialLink(settings, "facebook") || "#"} aria-label="فيسبوك">
                   <svg viewBox="0 0 24 24" fill="currentColor">
                     <path d="M13.5 21v-8h2.7l.4-3.2h-3.1V7.7c0-.9.3-1.6 1.6-1.6h1.7V3.2C16 3.1 15 3 13.9 3c-2.4 0-4 1.5-4 4.1v2.7H7.2V13H10v8h3.5z" />
                   </svg>
                 </a>
-                <a href="#" aria-label="لينكدإن">
+                <a href={getSocialLink(settings, "linkedin") || "#"} aria-label="لينكدإن">
                   <svg viewBox="0 0 24 24" fill="currentColor">
                     <path d="M4.98 3.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5zM3.5 9.5h3v11h-3v-11zM9.5 9.5h2.9v1.5h.04c.4-.75 1.4-1.55 2.9-1.55 3.1 0 3.66 2 3.66 4.6v6.45h-3v-5.7c0-1.4-.03-3.2-1.95-3.2-1.95 0-2.25 1.5-2.25 3.1v5.8h-3v-11z" />
                   </svg>
                 </a>
-                <a href="https://wa.me/201000000000" aria-label="واتساب">
+                <a href={getSocialLink(settings, "whatsapp") || "#"} aria-label="واتساب">
                   <svg viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2a10 10 0 00-8.5 15.2L2 22l4.9-1.5A10 10 0 1012 2zm0 18a8 8 0 01-4.1-1.1l-.3-.2-2.9.9.9-2.8-.2-.3A8 8 0 1112 20z" />
                   </svg>
@@ -191,19 +197,19 @@ export default function PublicLayout({
             <div className="footer-col">
               <h4>التواصل</h4>
               <ul>
-                <li>القاهرة الجديدة، مصر</li>
+                <li>{getSetting(settings, "site.address_ar")}</li>
                 <li dir="ltr" style={{ textAlign: "right" }}>
-                  +20 100 000 0000
+                  {getSetting(settings, "site.phone")}
                 </li>
                 <li dir="ltr" style={{ textAlign: "right" }}>
-                  info@4brothers-security.com
+                  {getSetting(settings, "site.email")}
                 </li>
-                <li>سجل تجاري رقم 000000 — ترخيص وزارة الداخلية رقم 0000</li>
+                <li>{`سجل تجاري رقم ${getSetting(settings, "site.commercial_registry_no")} — ترخيص وزارة الداخلية رقم ${getSetting(settings, "site.security_license_no")}`}</li>
               </ul>
             </div>
           </div>
           <div className="footer-bottom">
-            <span><span dir="ltr">© 2026</span> فور برذرز للأمن والحراسات. جميع الحقوق محفوظة.</span>
+            <span><span dir="ltr">© 2026</span> {getSetting(settings, "site.company_name_ar")}. جميع الحقوق محفوظة.</span>
             <span dir="ltr">Built for 4 Brothers Security &amp; Guarding — Egypt</span>
           </div>
         </div>
@@ -211,7 +217,7 @@ export default function PublicLayout({
 
       <a
         className="whatsapp-fab"
-        href="https://wa.me/201000000000"
+        href={getSocialLink(settings, "whatsapp") || "#"}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="تواصل عبر واتساب — يفتح في نافذة جديدة"

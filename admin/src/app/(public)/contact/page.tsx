@@ -1,6 +1,12 @@
 import { QuoteForm } from "./_components/QuoteForm";
+import { settingsService } from "@/lib/services/settings.service";
+import { getSetting, getSocialLink } from "@/lib/constants/settings-fallback";
 
-export default function ContactPage() {
+export const revalidate = 60;
+
+export default async function ContactPage() {
+  const settings = await settingsService.getGroupAsMap("general");
+
   return (
     <main id="main-content">
       <section className="page-hero">
@@ -30,7 +36,7 @@ export default function ContactPage() {
                 الهاتف
               </h3>
               <p style={{ fontSize: ".9rem" }} dir="ltr">
-                +20 100 000 0000
+                {getSetting(settings, "site.phone")}
               </p>
             </div>
             <div className="card">
@@ -43,7 +49,7 @@ export default function ContactPage() {
                 البريد الإلكتروني
               </h3>
               <p style={{ fontSize: ".9rem" }} dir="ltr">
-                info@4brothers-security.com
+                {getSetting(settings, "site.email")}
               </p>
             </div>
             <div className="card">
@@ -56,7 +62,7 @@ export default function ContactPage() {
               <h3 className="h3" style={{ fontSize: "1.05rem" }}>
                 المقر الرئيسي
               </h3>
-              <p style={{ fontSize: ".9rem" }}>القاهرة الجديدة، مصر</p>
+              <p style={{ fontSize: ".9rem" }}>{getSetting(settings, "site.address_ar")}</p>
             </div>
             <div className="card">
               <div className="card-icon">
@@ -68,14 +74,14 @@ export default function ContactPage() {
                 ساعات العمل
               </h3>
               <p style={{ fontSize: ".9rem" }}>
-                الأحد – الخميس، 9 ص – 6 م
+                {getSetting(settings, "site.working_hours_ar")}
                 <br />
                 الدعم الميداني: 24/7
               </p>
             </div>
           </div>
           <div className="btn-row" style={{ justifyContent: "center", marginTop: "2rem" }}>
-            <a href="https://wa.me/201000000000" target="_blank" rel="noopener noreferrer" className="btn btn--primary">
+            <a href={getSocialLink(settings, "whatsapp") || "#"} target="_blank" rel="noopener noreferrer" className="btn btn--primary">
               تواصل عبر واتساب مباشرة
             </a>
           </div>
@@ -90,11 +96,11 @@ export default function ContactPage() {
                 خط الطوارئ — متاح 24/7
               </div>
               <p style={{ color: "var(--steel)", fontSize: ".92rem", maxWidth: "46ch" }}>
-                لأي طارئ أمني في موقع متعاقد معنا حاليًا، اتصل مباشرة على الرقم التالي في أي وقت.
+                {getSetting(settings, "site.emergency_line_note_ar")}
               </p>
             </div>
-            <a href="tel:+201000000000" className="num" dir="ltr">
-              +20 100 000 0000
+            <a href={`tel:${getSetting(settings, "site.phone")}`} className="num" dir="ltr">
+              {getSetting(settings, "site.phone")}
             </a>
           </div>
         </div>
