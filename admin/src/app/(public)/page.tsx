@@ -2,14 +2,25 @@ import Link from "next/link";
 import { serviceRepository } from "@/lib/repositories/service.repository";
 import { industryRepository } from "@/lib/repositories/industry.repository";
 import { testimonialRepository } from "@/lib/repositories/testimonial.repository";
+import { homeManagementService } from "@/lib/services/homeManagement.service";
+import type { HomeContent } from "@/lib/validation/home.schema";
 import { Icon } from "./_components/Icon";
 
 export const revalidate = 60;
+
+const HARDCODED_CTA: HomeContent["cta"] = {
+  heading: "جاهزون لتأمين موقعك من الأسبوع القادم",
+  lead: "أرسل تفاصيل منشأتك واحصل على عرض سعر مبدئي خلال يوم عمل واحد.",
+  primaryButton: { label: "اطلب عرض سعر", href: "/contact#quote" },
+  secondaryButton: { label: "تواصل معنا مباشرة", href: "/contact" },
+};
 
 export default async function PublicHomePage() {
   const services = await serviceRepository.findAllPublished();
   const industries = await industryRepository.findAllPublished();
   const testimonials = await testimonialRepository.findAllPublished();
+  const publishedHome = await homeManagementService.getPublished();
+  const cta = (publishedHome as HomeContent | null)?.cta ?? HARDCODED_CTA;
 
   return (
     <>
@@ -400,19 +411,19 @@ export default async function PublicHomePage() {
 
     <section className="section section--charcoal">
       <div className="container reveal" style={{ textAlign: "center" }}>
-        <h2 className="h2">جاهزون لتأمين موقعك من الأسبوع القادم</h2>
+        <h2 className="h2">{cta.heading}</h2>
         <p className="lead" style={{ maxWidth: "50ch", marginInline: "auto", marginTop: "1rem" }}>
-          أرسل تفاصيل منشأتك واحصل على عرض سعر مبدئي خلال يوم عمل واحد.
+          {cta.lead}
         </p>
         <div className="btn-row" style={{ justifyContent: "center", marginTop: "1.8rem" }}>
-          <Link href="/contact#quote" className="btn btn--primary">
-            اطلب عرض سعر{" "}
+          <Link href={cta.primaryButton.href} className="btn btn--primary">
+            {cta.primaryButton.label}{" "}
             <svg viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 12h14M13 6l6 6-6 6" />
             </svg>
           </Link>
-          <Link href="/contact" className="btn btn--ghost">
-            تواصل معنا مباشرة
+          <Link href={cta.secondaryButton.href} className="btn btn--ghost">
+            {cta.secondaryButton.label}
           </Link>
         </div>
       </div>
