@@ -4,6 +4,7 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/Textarea";
 import { FormField } from "@/components/ui/FormField";
 import { useToast } from "@/components/notifications/ToastProvider";
 import type { HomeContent } from "@/lib/validation/home.schema";
@@ -13,6 +14,16 @@ interface HomeEditorProps {
 }
 
 const EMPTY_HOME: HomeContent = {
+  hero: {
+    eyebrow: "",
+    titleLine1: "",
+    titleHighlight: "",
+    titleSuffix: "",
+    lead: "",
+    stats: [{ count: 0, suffix: "", caption: "" }],
+    panelRows: [{ label: "", value: "" }],
+    panelEyebrow: "",
+  },
   cta: {
     heading: "",
     lead: "",
@@ -38,6 +49,59 @@ export function HomeEditor({ initial }: HomeEditorProps) {
     setValues((prev) => ({
       ...prev,
       cta: { ...prev.cta, [which]: { ...prev.cta[which], [field]: val } },
+    }));
+  }
+
+  function updateHeroField(
+    field: "eyebrow" | "titleLine1" | "titleHighlight" | "titleSuffix" | "lead" | "panelEyebrow",
+    val: string
+  ) {
+    setValues((prev) => ({ ...prev, hero: { ...prev.hero, [field]: val } }));
+  }
+
+  function updateStatItem<K extends keyof HomeContent["hero"]["stats"][number]>(
+    i: number,
+    field: K,
+    val: HomeContent["hero"]["stats"][number][K]
+  ) {
+    setValues((prev) => ({
+      ...prev,
+      hero: { ...prev.hero, stats: prev.hero.stats.map((s, idx) => (idx === i ? { ...s, [field]: val } : s)) },
+    }));
+  }
+  function addStatItem() {
+    setValues((prev) => ({
+      ...prev,
+      hero: { ...prev.hero, stats: [...prev.hero.stats, { count: 0, suffix: "", caption: "" }] },
+    }));
+  }
+  function removeStatItem(i: number) {
+    setValues((prev) => ({
+      ...prev,
+      hero: { ...prev.hero, stats: prev.hero.stats.filter((_, idx) => idx !== i) },
+    }));
+  }
+
+  function updatePanelRow<K extends keyof HomeContent["hero"]["panelRows"][number]>(
+    i: number,
+    field: K,
+    val: HomeContent["hero"]["panelRows"][number][K]
+  ) {
+    setValues((prev) => ({
+      ...prev,
+      hero: { ...prev.hero, panelRows: prev.hero.panelRows.map((r, idx) => (idx === i ? { ...r, [field]: val } : r)) },
+    }));
+  }
+  function addPanelRow() {
+    setValues((prev) => ({
+      ...prev,
+      hero: { ...prev.hero, panelRows: [...prev.hero.panelRows, { label: "", value: "" }] },
+    }));
+  }
+  function removePanelRow(i: number) {
+    setValues((prev) => ({
+      ...prev,
+      hero: { ...prev.hero, panelRows: prev.hero.panelRows.filter((_, idx) => idx !== i) },
     }));
   }
 
@@ -120,6 +184,102 @@ export function HomeEditor({ initial }: HomeEditorProps) {
 
   return (
     <form onSubmit={handleSaveDraft} className="flex max-w-3xl flex-col gap-8" noValidate>
+      <section className="flex flex-col gap-5">
+        <h2 className="text-lg font-black">الترويسة (Hero)</h2>
+        {errors.hero && <p className="text-xs text-[#E07856]">{errors.hero}</p>}
+
+        <FormField label="العنوان الفرعي (Eyebrow)" htmlFor="hero-eyebrow" required>
+          <Input id="hero-eyebrow" value={values.hero.eyebrow} onChange={(e) => updateHeroField("eyebrow", e.target.value)} required />
+        </FormField>
+
+        <FormField
+          label="العنوان — السطر الأول"
+          htmlFor="hero-title-line1"
+          required
+          helpText="يُعرض العنوان مركّبًا هكذا: السطر الأول + سطر جديد + الكلمة المميزة (بلون ذهبي) + بقية العنوان"
+        >
+          <Input id="hero-title-line1" value={values.hero.titleLine1} onChange={(e) => updateHeroField("titleLine1", e.target.value)} required />
+        </FormField>
+        <FormField label="العنوان — الكلمة المميزة" htmlFor="hero-title-highlight" required helpText="تظهر بلون ذهبي داخل العنوان">
+          <Input id="hero-title-highlight" value={values.hero.titleHighlight} onChange={(e) => updateHeroField("titleHighlight", e.target.value)} required />
+        </FormField>
+        <FormField label="العنوان — بقية العنوان" htmlFor="hero-title-suffix" required helpText="النص الذي يلي الكلمة المميزة">
+          <Input id="hero-title-suffix" value={values.hero.titleSuffix} onChange={(e) => updateHeroField("titleSuffix", e.target.value)} required />
+        </FormField>
+
+        <FormField label="المقدمة" htmlFor="hero-lead" required>
+          <Textarea id="hero-lead" value={values.hero.lead} onChange={(e) => updateHeroField("lead", e.target.value)} required />
+        </FormField>
+
+        <div className="flex flex-col gap-4">
+          <h3 className="text-base font-bold text-[#9C978A]">الإحصائيات</h3>
+          {errors.stats && <p className="text-xs text-[#E07856]">{errors.stats}</p>}
+
+          {values.hero.stats.map((item, i) => (
+            <div key={i} className="flex flex-col gap-3 rounded-md border border-[rgba(201,162,39,0.16)] p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold text-[#9C978A]">إحصائية {i + 1}</span>
+                {values.hero.stats.length > 1 && (
+                  <button type="button" onClick={() => removeStatItem(i)} className="text-xs font-bold text-[#E07856] hover:underline">
+                    حذف
+                  </button>
+                )}
+              </div>
+              <FormField label="الرقم" htmlFor={`hero-stat-count-${i}`}>
+                <Input
+                  id={`hero-stat-count-${i}`}
+                  type="number"
+                  dir="ltr"
+                  style={{ textAlign: "left" }}
+                  value={item.count}
+                  onChange={(e) => updateStatItem(i, "count", Number(e.target.value))}
+                />
+              </FormField>
+              <FormField label="اللاحقة (Suffix)" htmlFor={`hero-stat-suffix-${i}`} helpText="مثال: + أو دقيقة">
+                <Input id={`hero-stat-suffix-${i}`} dir="ltr" style={{ textAlign: "left" }} value={item.suffix} onChange={(e) => updateStatItem(i, "suffix", e.target.value)} />
+              </FormField>
+              <FormField label="الوصف" htmlFor={`hero-stat-caption-${i}`}>
+                <Input id={`hero-stat-caption-${i}`} value={item.caption} onChange={(e) => updateStatItem(i, "caption", e.target.value)} />
+              </FormField>
+            </div>
+          ))}
+          <button type="button" onClick={addStatItem} className="text-xs font-bold text-[#C9A227] hover:underline">
+            + إضافة إحصائية
+          </button>
+        </div>
+
+        <FormField label="عنوان اللوحة (Eyebrow)" htmlFor="hero-panel-eyebrow" required>
+          <Input id="hero-panel-eyebrow" value={values.hero.panelEyebrow} onChange={(e) => updateHeroField("panelEyebrow", e.target.value)} required />
+        </FormField>
+
+        <div className="flex flex-col gap-4">
+          <h3 className="text-base font-bold text-[#9C978A]">صفوف اللوحة</h3>
+          {errors.panelRows && <p className="text-xs text-[#E07856]">{errors.panelRows}</p>}
+
+          {values.hero.panelRows.map((item, i) => (
+            <div key={i} className="flex flex-col gap-3 rounded-md border border-[rgba(201,162,39,0.16)] p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold text-[#9C978A]">صف {i + 1}</span>
+                {values.hero.panelRows.length > 1 && (
+                  <button type="button" onClick={() => removePanelRow(i)} className="text-xs font-bold text-[#E07856] hover:underline">
+                    حذف
+                  </button>
+                )}
+              </div>
+              <FormField label="التسمية" htmlFor={`hero-panel-label-${i}`}>
+                <Input id={`hero-panel-label-${i}`} value={item.label} onChange={(e) => updatePanelRow(i, "label", e.target.value)} />
+              </FormField>
+              <FormField label="القيمة" htmlFor={`hero-panel-value-${i}`}>
+                <Input id={`hero-panel-value-${i}`} value={item.value} onChange={(e) => updatePanelRow(i, "value", e.target.value)} />
+              </FormField>
+            </div>
+          ))}
+          <button type="button" onClick={addPanelRow} className="text-xs font-bold text-[#C9A227] hover:underline">
+            + إضافة صف
+          </button>
+        </div>
+      </section>
+
       <section className="flex flex-col gap-5">
         <h2 className="text-lg font-black">بانر الدعوة لاتخاذ إجراء (CTA)</h2>
         {errors.cta && <p className="text-xs text-[#E07856]">{errors.cta}</p>}
