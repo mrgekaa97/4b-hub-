@@ -31,6 +31,19 @@ const HARDCODED_HERO: HomeContent["hero"] = {
   ],
 };
 
+const HARDCODED_WHYUS: HomeContent["whyUs"] = {
+  eyebrow: "لماذا فور برذرز",
+  heading: "ما الذي يميزنا فعليًا عن أي شركة حراسة أخرى",
+  cards: [
+    { icon: "I_SHIELD", title: "ترخيص وتأمين كامل", text: "كل عقد مغطى بترخيص تشغيل ساري ووثيقة تأمين شاملة على الأفراد والموقع." },
+    { icon: "I_CLOCK", title: "استجابة خلال 15 دقيقة", text: "فريق إشراف ميداني متاح على مدار الساعة للتعامل مع أي طارئ فورًا." },
+    { icon: "I_PATROL", title: "أفراد مدرَّبون فعليًا", text: "برنامج تأهيل داخلي قبل أي تكليف ميداني، لا مجرد توظيف سريع." },
+    { icon: "I_CONSULT", title: "تقارير يومية شفافة", text: "توثيق كل دورية وحادثة بتقرير واضح يصلك أولًا بأول، لا نهاية الشهر فقط." },
+    { icon: "I_VIP", title: "مدير حساب مخصص", text: "نقطة تواصل واحدة مسؤولة عن عقدك بالكامل، لا تنقل بين موظفين مختلفين." },
+    { icon: "I_CCTV", title: "غرفة عمليات 24/7", text: "متابعة مركزية لكل المواقع المتعاقدة على مدار اليوم بالكامل." },
+  ],
+};
+
 const HARDCODED_CTA: HomeContent["cta"] = {
   heading: "جاهزون لتأمين موقعك من الأسبوع القادم",
   lead: "أرسل تفاصيل منشأتك واحصل على عرض سعر مبدئي خلال يوم عمل واحد.",
@@ -44,6 +57,7 @@ export default async function PublicHomePage() {
   const testimonials = await testimonialRepository.findAllPublished();
   const publishedHome = await homeManagementService.getPublished();
   const hero = (publishedHome as HomeContent | null)?.hero ?? HARDCODED_HERO;
+  const whyUs = (publishedHome as HomeContent | null)?.whyUs ?? HARDCODED_WHYUS;
   const cta = (publishedHome as HomeContent | null)?.cta ?? HARDCODED_CTA;
 
   return (
@@ -132,69 +146,18 @@ export default async function PublicHomePage() {
       <div className="container reveal">
         <div className="section-head center">
           <div className="eyebrow" style={{ justifyContent: "center" }}>
-            لماذا فور برذرز
+            {whyUs.eyebrow}
           </div>
-          <h2 className="h2">ما الذي يميزنا فعليًا عن أي شركة حراسة أخرى</h2>
+          <h2 className="h2">{whyUs.heading}</h2>
         </div>
         <div className="grid grid--3">
-          <div className="card why-card">
-            <div className="card-icon">
-              <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2l8 3v6c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V5z" />
-              </svg>
+          {whyUs.cards.map((card, i) => (
+            <div className="card why-card" key={i}>
+              <Icon name={card.icon} />
+              <h3 className="h3">{card.title}</h3>
+              <p>{card.text}</p>
             </div>
-            <h3 className="h3">ترخيص وتأمين كامل</h3>
-            <p>كل عقد مغطى بترخيص تشغيل ساري ووثيقة تأمين شاملة على الأفراد والموقع.</p>
-          </div>
-          <div className="card why-card">
-            <div className="card-icon">
-              <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="9" />
-                <path d="M12 7v5l3 3" />
-              </svg>
-            </div>
-            <h3 className="h3">استجابة خلال 15 دقيقة</h3>
-            <p>فريق إشراف ميداني متاح على مدار الساعة للتعامل مع أي طارئ فورًا.</p>
-          </div>
-          <div className="card why-card">
-            <div className="card-icon">
-              <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="8" r="3" />
-                <path d="M5 21c0-4 3-6 7-6s7 2 7 6" />
-              </svg>
-            </div>
-            <h3 className="h3">أفراد مدرَّبون فعليًا</h3>
-            <p>برنامج تأهيل داخلي قبل أي تكليف ميداني، لا مجرد توظيف سريع.</p>
-          </div>
-          <div className="card why-card">
-            <div className="card-icon">
-              <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 4h16v12H8l-4 4z" />
-              </svg>
-            </div>
-            <h3 className="h3">تقارير يومية شفافة</h3>
-            <p>توثيق كل دورية وحادثة بتقرير واضح يصلك أولًا بأول، لا نهاية الشهر فقط.</p>
-          </div>
-          <div className="card why-card">
-            <div className="card-icon">
-              <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="8" r="4" />
-                <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" />
-              </svg>
-            </div>
-            <h3 className="h3">مدير حساب مخصص</h3>
-            <p>نقطة تواصل واحدة مسؤولة عن عقدك بالكامل، لا تنقل بين موظفين مختلفين.</p>
-          </div>
-          <div className="card why-card">
-            <div className="card-icon">
-              <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 8h11l4-3v10l-4-3H3z" />
-                <path d="M6 8v5M2 21h10" />
-              </svg>
-            </div>
-            <h3 className="h3">غرفة عمليات 24/7</h3>
-            <p>متابعة مركزية لكل المواقع المتعاقدة على مدار اليوم بالكامل.</p>
-          </div>
+          ))}
         </div>
       </div>
     </section>

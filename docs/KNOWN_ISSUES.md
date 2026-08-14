@@ -204,3 +204,15 @@ Both are larger infrastructure/deployment decisions, not a quick code change —
 **Why deferred:** Confirmed via search **not present** in the new `(public)` Next.js pages — those were already fixed (see item on RTL logo/text ordering). Only affects the legacy static site, which is slated for removal.
 
 **Real fix:** Resolve when the legacy `website/` directory is decommissioned — no fix needed in the Next.js app.
+
+---
+
+## 18. `<Icon>` uses `dangerouslySetInnerHTML` — safe today, future-watch only if custom SVG input is ever added
+
+**What it is:** `(public)/_components/Icon.tsx` renders icon markup by looking up a `name` key (e.g. `"I_SHIELD"`) in the static `shared/icons/icon-set.json` file and injecting the matched SVG string into the DOM via `dangerouslySetInnerHTML`. First introduced for Services (item 11), now also used for Home's Why Us cards.
+
+**Why it's safe today:** `name` is never rendered as-is and never comes from free-text input — it's always a key picked from the closed `ICON_OPTIONS` list (`admin/src/lib/constants/icon-options.ts`, 17 fixed entries) via a `<Select>` in the admin editors (`AboutEditor`, `HomeEditor`). The SVG markup actually injected is always the fixed, developer-authored content of `icon-set.json`, never anything an admin or public visitor can type or upload. There is no path today by which arbitrary HTML/SVG markup reaches `dangerouslySetInnerHTML`.
+
+**When this would become a risk:** Only if a future feature let admins (or, worse, public users) enter or upload custom SVG/HTML markup instead of picking a key from `ICON_OPTIONS` — at that point the injected string would no longer be a fixed, trusted value, and sanitization (or replacing `dangerouslySetInnerHTML` with a safe SVG-sprite/component approach) would be required before shipping that feature.
+
+**Status:** Accepted tech debt — future-watch, not an active bug. No action needed unless/until custom icon input is introduced.
