@@ -8,6 +8,29 @@ import { Icon } from "./_components/Icon";
 
 export const revalidate = 60;
 
+const HARDCODED_HERO: HomeContent["hero"] = {
+  eyebrow: "حراسة معتمدة · ترخيص وزارة الداخلية",
+  titleLine1: "حماية تستحقها منشأتك،",
+  titleHighlight: "أربعة إخوة",
+  titleSuffix: "بضمان",
+  lead:
+    "فور برذرز شركة مصرية متخصصة في تأمين وحراسة المصانع والمستشفيات والفنادق والمجمعات السكنية والمنشآت التجارية، بعقود واضحة وفريق مدرَّب ومسؤولية شخصية عن كل موقع نحرسه.",
+  stats: [
+    { count: 12, suffix: "+", caption: "سنة خبرة" },
+    { count: 450, suffix: "+", caption: "فرد أمن مدرَّب" },
+    { count: 120, suffix: "+", caption: "موقع تحت الحراسة" },
+    { count: 15, suffix: " دقيقة", caption: "زمن الاستجابة" },
+  ],
+  panelEyebrow: "لماذا تختار فور برذرز",
+  panelRows: [
+    { label: "ترخيص التشغيل", value: "ساري ومعتمد" },
+    { label: "تأمين ضد المخاطر", value: "تغطية شاملة" },
+    { label: "تدريب الأفراد", value: "معتمد دوليًا" },
+    { label: "الإشراف الميداني", value: "24 / 7" },
+    { label: "بدء الخدمة", value: "خلال 72 ساعة" },
+  ],
+};
+
 const HARDCODED_CTA: HomeContent["cta"] = {
   heading: "جاهزون لتأمين موقعك من الأسبوع القادم",
   lead: "أرسل تفاصيل منشأتك واحصل على عرض سعر مبدئي خلال يوم عمل واحد.",
@@ -20,6 +43,7 @@ export default async function PublicHomePage() {
   const industries = await industryRepository.findAllPublished();
   const testimonials = await testimonialRepository.findAllPublished();
   const publishedHome = await homeManagementService.getPublished();
+  const hero = (publishedHome as HomeContent | null)?.hero ?? HARDCODED_HERO;
   const cta = (publishedHome as HomeContent | null)?.cta ?? HARDCODED_CTA;
 
   return (
@@ -59,15 +83,14 @@ export default async function PublicHomePage() {
             </picture>
             <span>4 BROTHERS SECURITY &amp; GUARDING</span>
           </div>
-          <div className="eyebrow">حراسة معتمدة · ترخيص وزارة الداخلية</div>
+          <div className="eyebrow">{hero.eyebrow}</div>
           <h1 className="h-display">
-            حماية تستحقها منشأتك،
+            {hero.titleLine1}
             <br />
-            بضمان <span className="gold-text">أربعة إخوة</span>
+            {hero.titleSuffix} <span className="gold-text">{hero.titleHighlight}</span>
           </h1>
           <p className="lead" style={{ maxWidth: "52ch", marginTop: "1.2rem" }}>
-            فور برذرز شركة مصرية متخصصة في تأمين وحراسة المصانع والمستشفيات والفنادق والمجمعات السكنية والمنشآت التجارية،
-            بعقود واضحة وفريق مدرَّب ومسؤولية شخصية عن كل موقع نحرسه.
+            {hero.lead}
           </p>
           <div className="btn-row" style={{ marginTop: "2rem" }}>
             <a href="/contact#quote" className="btn btn--primary">
@@ -81,56 +104,26 @@ export default async function PublicHomePage() {
             </a>
           </div>
           <div className="hero-trust">
-            <div>
-              <div className="stat-num" data-count-to="12" data-suffix="+">
-                0
+            {hero.stats.map((stat, i) => (
+              <div key={i}>
+                <div className="stat-num" data-count-to={stat.count} data-suffix={stat.suffix}>
+                  0
+                </div>
+                <div className="stat-label">{stat.caption}</div>
               </div>
-              <div className="stat-label">سنة خبرة</div>
-            </div>
-            <div>
-              <div className="stat-num" data-count-to="450" data-suffix="+">
-                0
-              </div>
-              <div className="stat-label">فرد أمن مدرَّب</div>
-            </div>
-            <div>
-              <div className="stat-num" data-count-to="120" data-suffix="+">
-                0
-              </div>
-              <div className="stat-label">موقع تحت الحراسة</div>
-            </div>
-            <div>
-              <div className="stat-num" data-count-to="15" data-suffix=" دقيقة">
-                0
-              </div>
-              <div className="stat-label">زمن الاستجابة</div>
-            </div>
+            ))}
           </div>
         </div>
         <div className="hero-panel">
           <div className="eyebrow" style={{ marginBottom: "1rem" }}>
-            لماذا تختار فور برذرز
+            {hero.panelEyebrow}
           </div>
-          <div className="hero-panel-row">
-            <span>ترخيص التشغيل</span>
-            <b>ساري ومعتمد</b>
-          </div>
-          <div className="hero-panel-row">
-            <span>تأمين ضد المخاطر</span>
-            <b>تغطية شاملة</b>
-          </div>
-          <div className="hero-panel-row">
-            <span>تدريب الأفراد</span>
-            <b>معتمد دوليًا</b>
-          </div>
-          <div className="hero-panel-row">
-            <span>الإشراف الميداني</span>
-            <b>24 / 7</b>
-          </div>
-          <div className="hero-panel-row">
-            <span>بدء الخدمة</span>
-            <b>خلال 72 ساعة</b>
-          </div>
+          {hero.panelRows.map((row, i) => (
+            <div className="hero-panel-row" key={i}>
+              <span>{row.label}</span>
+              <b>{row.value}</b>
+            </div>
+          ))}
         </div>
       </div>
     </section>
