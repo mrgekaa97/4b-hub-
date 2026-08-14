@@ -4,9 +4,11 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { FormField } from "@/components/ui/FormField";
 import { useToast } from "@/components/notifications/ToastProvider";
+import { ICON_OPTIONS } from "@/lib/constants/icon-options";
 import type { HomeContent } from "@/lib/validation/home.schema";
 
 interface HomeEditorProps {
@@ -24,6 +26,11 @@ const EMPTY_HOME: HomeContent = {
     panelRows: [{ label: "", value: "" }],
     panelEyebrow: "",
   },
+  whyUs: {
+    eyebrow: "",
+    heading: "",
+    cards: [{ icon: "I_SHIELD", title: "", text: "" }],
+  },
   cta: {
     heading: "",
     lead: "",
@@ -35,7 +42,11 @@ const EMPTY_HOME: HomeContent = {
 export function HomeEditor({ initial }: HomeEditorProps) {
   const router = useRouter();
   const { showToast } = useToast();
-  const [values, setValues] = useState<HomeContent>(initial ?? EMPTY_HOME);
+  const [values, setValues] = useState<HomeContent>(() => ({
+    hero: initial?.hero ?? EMPTY_HOME.hero,
+    whyUs: initial?.whyUs ?? EMPTY_HOME.whyUs,
+    cta: initial?.cta ?? EMPTY_HOME.cta,
+  }));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
@@ -102,6 +113,33 @@ export function HomeEditor({ initial }: HomeEditorProps) {
     setValues((prev) => ({
       ...prev,
       hero: { ...prev.hero, panelRows: prev.hero.panelRows.filter((_, idx) => idx !== i) },
+    }));
+  }
+
+  function updateWhyUsField(field: "eyebrow" | "heading", val: string) {
+    setValues((prev) => ({ ...prev, whyUs: { ...prev.whyUs, [field]: val } }));
+  }
+
+  function updateCard<K extends keyof HomeContent["whyUs"]["cards"][number]>(
+    i: number,
+    field: K,
+    val: HomeContent["whyUs"]["cards"][number][K]
+  ) {
+    setValues((prev) => ({
+      ...prev,
+      whyUs: { ...prev.whyUs, cards: prev.whyUs.cards.map((c, idx) => (idx === i ? { ...c, [field]: val } : c)) },
+    }));
+  }
+  function addCard() {
+    setValues((prev) => ({
+      ...prev,
+      whyUs: { ...prev.whyUs, cards: [...prev.whyUs.cards, { icon: "I_SHIELD", title: "", text: "" }] },
+    }));
+  }
+  function removeCard(i: number) {
+    setValues((prev) => ({
+      ...prev,
+      whyUs: { ...prev.whyUs, cards: prev.whyUs.cards.filter((_, idx) => idx !== i) },
     }));
   }
 
@@ -278,6 +316,49 @@ export function HomeEditor({ initial }: HomeEditorProps) {
             + إضافة صف
           </button>
         </div>
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <h2 className="text-lg font-black">لماذا نحن</h2>
+        {errors.whyUs && <p className="text-xs text-[#E07856]">{errors.whyUs}</p>}
+
+        <FormField label="العنوان الفرعي (Eyebrow)" htmlFor="whyus-eyebrow" required>
+          <Input id="whyus-eyebrow" value={values.whyUs.eyebrow} onChange={(e) => updateWhyUsField("eyebrow", e.target.value)} required />
+        </FormField>
+        <FormField label="العنوان" htmlFor="whyus-heading" required>
+          <Input id="whyus-heading" value={values.whyUs.heading} onChange={(e) => updateWhyUsField("heading", e.target.value)} required />
+        </FormField>
+
+        <div className="flex flex-col gap-4">
+          {values.whyUs.cards.map((item, i) => (
+            <div key={i} className="flex flex-col gap-3 rounded-md border border-[rgba(201,162,39,0.16)] p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold text-[#9C978A]">بطاقة {i + 1}</span>
+                {values.whyUs.cards.length > 1 && (
+                  <button type="button" onClick={() => removeCard(i)} className="text-xs font-bold text-[#E07856] hover:underline">
+                    حذف
+                  </button>
+                )}
+              </div>
+              <FormField label="الأيقونة" htmlFor={`whyus-card-icon-${i}`}>
+                <Select id={`whyus-card-icon-${i}`} value={item.icon} onChange={(e) => updateCard(i, "icon", e.target.value)}>
+                  {ICON_OPTIONS.map((opt) => (
+                    <option key={opt.key} value={opt.key}>{opt.label}</option>
+                  ))}
+                </Select>
+              </FormField>
+              <FormField label="العنوان" htmlFor={`whyus-card-title-${i}`}>
+                <Input id={`whyus-card-title-${i}`} value={item.title} onChange={(e) => updateCard(i, "title", e.target.value)} />
+              </FormField>
+              <FormField label="النص" htmlFor={`whyus-card-text-${i}`}>
+                <Input id={`whyus-card-text-${i}`} value={item.text} onChange={(e) => updateCard(i, "text", e.target.value)} />
+              </FormField>
+            </div>
+          ))}
+        </div>
+        <button type="button" onClick={addCard} className="text-xs font-bold text-[#C9A227] hover:underline">
+          + إضافة بطاقة
+        </button>
       </section>
 
       <section className="flex flex-col gap-5">

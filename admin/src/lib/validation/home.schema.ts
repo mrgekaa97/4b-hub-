@@ -44,6 +44,23 @@ export const homeSchema = z
           .min(1, "أضف صفًا واحدًا على الأقل"),
       })
       .strict(),
+    whyUs: z
+      .object({
+        eyebrow: z.string().min(1, "العنوان الفرعي مطلوب"),
+        heading: z.string().min(2, "العنوان مطلوب"),
+        cards: z
+          .array(
+            z
+              .object({
+                icon: z.string().min(1, "اختر أيقونة"),
+                title: z.string().min(2, "العنوان مطلوب"),
+                text: z.string().min(2, "النص مطلوب"),
+              })
+              .strict()
+          )
+          .min(1, "أضف بطاقة واحدة على الأقل"),
+      })
+      .strict(),
     cta: z
       .object({
         heading: z.string().min(2, "العنوان مطلوب"),
