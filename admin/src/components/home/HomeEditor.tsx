@@ -31,6 +31,11 @@ const EMPTY_HOME: HomeContent = {
     heading: "",
     cards: [{ icon: "I_SHIELD", title: "", text: "" }],
   },
+  timeline: {
+    eyebrow: "",
+    heading: "",
+    steps: [{ num: "01", title: "", text: "" }],
+  },
   cta: {
     heading: "",
     lead: "",
@@ -45,6 +50,7 @@ export function HomeEditor({ initial }: HomeEditorProps) {
   const [values, setValues] = useState<HomeContent>(() => ({
     hero: initial?.hero ?? EMPTY_HOME.hero,
     whyUs: initial?.whyUs ?? EMPTY_HOME.whyUs,
+    timeline: initial?.timeline ?? EMPTY_HOME.timeline,
     cta: initial?.cta ?? EMPTY_HOME.cta,
   }));
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -140,6 +146,33 @@ export function HomeEditor({ initial }: HomeEditorProps) {
     setValues((prev) => ({
       ...prev,
       whyUs: { ...prev.whyUs, cards: prev.whyUs.cards.filter((_, idx) => idx !== i) },
+    }));
+  }
+
+  function updateTimelineField(field: "eyebrow" | "heading", val: string) {
+    setValues((prev) => ({ ...prev, timeline: { ...prev.timeline, [field]: val } }));
+  }
+
+  function updateStep<K extends keyof HomeContent["timeline"]["steps"][number]>(
+    i: number,
+    field: K,
+    val: HomeContent["timeline"]["steps"][number][K]
+  ) {
+    setValues((prev) => ({
+      ...prev,
+      timeline: { ...prev.timeline, steps: prev.timeline.steps.map((s, idx) => (idx === i ? { ...s, [field]: val } : s)) },
+    }));
+  }
+  function addStep() {
+    setValues((prev) => ({
+      ...prev,
+      timeline: { ...prev.timeline, steps: [...prev.timeline.steps, { num: "", title: "", text: "" }] },
+    }));
+  }
+  function removeStep(i: number) {
+    setValues((prev) => ({
+      ...prev,
+      timeline: { ...prev.timeline, steps: prev.timeline.steps.filter((_, idx) => idx !== i) },
     }));
   }
 
@@ -358,6 +391,45 @@ export function HomeEditor({ initial }: HomeEditorProps) {
         </div>
         <button type="button" onClick={addCard} className="text-xs font-bold text-[#C9A227] hover:underline">
           + إضافة بطاقة
+        </button>
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <h2 className="text-lg font-black">آلية العمل</h2>
+        {errors.timeline && <p className="text-xs text-[#E07856]">{errors.timeline}</p>}
+
+        <FormField label="العنوان الفرعي (Eyebrow)" htmlFor="timeline-eyebrow" required>
+          <Input id="timeline-eyebrow" value={values.timeline.eyebrow} onChange={(e) => updateTimelineField("eyebrow", e.target.value)} required />
+        </FormField>
+        <FormField label="العنوان" htmlFor="timeline-heading" required>
+          <Input id="timeline-heading" value={values.timeline.heading} onChange={(e) => updateTimelineField("heading", e.target.value)} required />
+        </FormField>
+
+        <div className="flex flex-col gap-4">
+          {values.timeline.steps.map((item, i) => (
+            <div key={i} className="flex flex-col gap-3 rounded-md border border-[rgba(201,162,39,0.16)] p-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-bold text-[#9C978A]">خطوة {i + 1}</span>
+                {values.timeline.steps.length > 1 && (
+                  <button type="button" onClick={() => removeStep(i)} className="text-xs font-bold text-[#E07856] hover:underline">
+                    حذف
+                  </button>
+                )}
+              </div>
+              <FormField label="الرقم" htmlFor={`timeline-step-num-${i}`} helpText="رقم العرض، مثل 01 أو 02">
+                <Input id={`timeline-step-num-${i}`} value={item.num} onChange={(e) => updateStep(i, "num", e.target.value)} />
+              </FormField>
+              <FormField label="العنوان" htmlFor={`timeline-step-title-${i}`}>
+                <Input id={`timeline-step-title-${i}`} value={item.title} onChange={(e) => updateStep(i, "title", e.target.value)} />
+              </FormField>
+              <FormField label="النص" htmlFor={`timeline-step-text-${i}`}>
+                <Input id={`timeline-step-text-${i}`} value={item.text} onChange={(e) => updateStep(i, "text", e.target.value)} />
+              </FormField>
+            </div>
+          ))}
+        </div>
+        <button type="button" onClick={addStep} className="text-xs font-bold text-[#C9A227] hover:underline">
+          + إضافة خطوة
         </button>
       </section>
 

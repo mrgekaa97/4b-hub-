@@ -61,6 +61,23 @@ export const homeSchema = z
           .min(1, "أضف بطاقة واحدة على الأقل"),
       })
       .strict(),
+    timeline: z
+      .object({
+        eyebrow: z.string().min(1, "العنوان الفرعي مطلوب"),
+        heading: z.string().min(2, "العنوان مطلوب"),
+        steps: z
+          .array(
+            z
+              .object({
+                num: z.string().min(1, "الرقم مطلوب"),
+                title: z.string().min(2, "العنوان مطلوب"),
+                text: z.string().min(2, "النص مطلوب"),
+              })
+              .strict()
+          )
+          .min(1, "أضف خطوة واحدة على الأقل"),
+      })
+      .strict(),
     cta: z
       .object({
         heading: z.string().min(2, "العنوان مطلوب"),
