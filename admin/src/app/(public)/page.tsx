@@ -44,6 +44,17 @@ const HARDCODED_WHYUS: HomeContent["whyUs"] = {
   ],
 };
 
+const HARDCODED_TIMELINE: HomeContent["timeline"] = {
+  eyebrow: "آلية العمل",
+  heading: "من أول اتصال إلى بدء الحراسة الفعلي",
+  steps: [
+    { num: "01", title: "تواصل أولي", text: "ترسل تفاصيل الموقع عبر نموذج طلب عرض السعر أو مكالمة مباشرة." },
+    { num: "02", title: "معاينة ميدانية", text: "فريقنا يزور الموقع لتقييم المخاطر وتحديد عدد الأفراد المطلوب." },
+    { num: "03", title: "عرض سعر وعقد", text: "عرض مكتوب بالتفاصيل الكاملة، ثم توقيع عقد واضح البنود." },
+    { num: "04", title: "بدء الخدمة", text: "انتشار الفريق المدرَّب في الموقع خلال 72 ساعة من التوقيع." },
+  ],
+};
+
 const HARDCODED_CTA: HomeContent["cta"] = {
   heading: "جاهزون لتأمين موقعك من الأسبوع القادم",
   lead: "أرسل تفاصيل منشأتك واحصل على عرض سعر مبدئي خلال يوم عمل واحد.",
@@ -58,6 +69,7 @@ export default async function PublicHomePage() {
   const publishedHome = await homeManagementService.getPublished();
   const hero = (publishedHome as HomeContent | null)?.hero ?? HARDCODED_HERO;
   const whyUs = (publishedHome as HomeContent | null)?.whyUs ?? HARDCODED_WHYUS;
+  const timeline = (publishedHome as HomeContent | null)?.timeline ?? HARDCODED_TIMELINE;
   const cta = (publishedHome as HomeContent | null)?.cta ?? HARDCODED_CTA;
 
   return (
@@ -221,31 +233,18 @@ export default async function PublicHomePage() {
       <div className="container reveal">
         <div className="section-head center">
           <div className="eyebrow" style={{ justifyContent: "center" }}>
-            آلية العمل
+            {timeline.eyebrow}
           </div>
-          <h2 className="h2">من أول اتصال إلى بدء الحراسة الفعلي</h2>
+          <h2 className="h2">{timeline.heading}</h2>
         </div>
         <div className="timeline">
-          <div className="timeline-step">
-            <div className="timeline-num">01</div>
-            <h4>تواصل أولي</h4>
-            <p>ترسل تفاصيل الموقع عبر نموذج طلب عرض السعر أو مكالمة مباشرة.</p>
-          </div>
-          <div className="timeline-step">
-            <div className="timeline-num">02</div>
-            <h4>معاينة ميدانية</h4>
-            <p>فريقنا يزور الموقع لتقييم المخاطر وتحديد عدد الأفراد المطلوب.</p>
-          </div>
-          <div className="timeline-step">
-            <div className="timeline-num">03</div>
-            <h4>عرض سعر وعقد</h4>
-            <p>عرض مكتوب بالتفاصيل الكاملة، ثم توقيع عقد واضح البنود.</p>
-          </div>
-          <div className="timeline-step">
-            <div className="timeline-num">04</div>
-            <h4>بدء الخدمة</h4>
-            <p>انتشار الفريق المدرَّب في الموقع خلال 72 ساعة من التوقيع.</p>
-          </div>
+          {timeline.steps.map((step, i) => (
+            <div className="timeline-step" key={i}>
+              <div className="timeline-num">{step.num}</div>
+              <h4>{step.title}</h4>
+              <p>{step.text}</p>
+            </div>
+          ))}
         </div>
       </div>
     </section>
