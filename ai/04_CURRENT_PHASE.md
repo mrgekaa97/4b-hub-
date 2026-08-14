@@ -1,6 +1,6 @@
 # 4B HUB - Current Development Phase
 
-Last Updated: August 2026
+Last Updated: August 14, 2026
 
 ---
 
@@ -69,6 +69,15 @@ Tasks:
 Status:
 
 In Progress
+
+Home CMS:
+
+Home page CMS (CTA + Hero sections) is complete end-to-end — Zod schema, dashboard editor, and public page wired to published data.
+
+Next Home sections:
+
+- Why Us (6-card array).
+- Timeline / Work Process (4 steps) — shared with About/Services; shared-content-type decision still pending.
 
 ---
 

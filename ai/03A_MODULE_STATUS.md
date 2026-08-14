@@ -1,6 +1,6 @@
 # 4B HUB - Module Status
 
-Last Updated: August 2026
+Last Updated: August 14, 2026
 
 ---
 
@@ -27,7 +27,7 @@ Legend
 | Module | Status | Progress |
 |----------|--------|----------|
 | Website Migration | 🟡 | 15% |
-| Home Page | 🔴 | 0% |
+| Home Page | 🟠 | ~40% |
 | About | 🔴 | 0% |
 | Services | 🟢 | 100% |
 | Industries | 🟢 | 100% |

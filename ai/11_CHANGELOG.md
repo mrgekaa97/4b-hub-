@@ -94,6 +94,27 @@ Separately, `c74cc9d` fixed RTL ordering of Latin/numeric brand text (logo mark,
 
 ---
 
+### Home CMS — CTA & Hero Complete
+
+The Home page CMS prototype is now wired end-to-end for its first two sections, CTA and Hero: database → admin CMS → public page with ISR.
+
+Data model:
+
+- A single `home` `Page` row holds all Home sections together in one `publishedData`/`draftData` JSON, validated by `home.schema.ts` (`.strict()` at every level).
+- `homeManagementService` follows the Industries deviation — no `triggerWebsiteRebuild`; the public page refreshes via ISR instead.
+
+Dashboard:
+
+- `HomeEditor` (dashboard, guarded by `HOME_MANAGE`) edits both sections with save-draft + publish, mirroring `AboutEditor`.
+- Hero carries a three-part split title (plain line + gold-highlight word) plus two arrays — stats and panel rows — with add/remove UI copied from the About module's array pattern.
+
+Public wiring:
+
+- `(public)/page.tsx` reads the published `home` row and resolves each section as `published?.section ?? HARDCODED_*`, so the page renders exactly as before when never-published. `revalidate = 60` preserved; the hero stat count-up animation and both hero `<a>` buttons were left untouched.
+- Last HEAD: `d0942bd`.
+
+---
+
 ### Next Steps
 
 - Services Migration
