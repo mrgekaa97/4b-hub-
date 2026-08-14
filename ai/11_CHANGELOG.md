@@ -115,6 +115,29 @@ Public wiring:
 
 ---
 
+### Home CMS — Why Us & Timeline Complete
+
+The Home CMS prototype now has all four planned sections wired end-to-end — CTA, Hero, Why Us, and Timeline — following the same schema → dashboard editor → public page pattern established for CTA/Hero.
+
+Why Us:
+
+- 6-card array (`icon`, `title`, `text`), mirroring About's `values` array field definitions with Home's own `.strict()` convention on every object level.
+- Icons are picked from the existing `ICON_OPTIONS` key list (the same 17-key registry About uses), never free-text or raw SVG — the dashboard's icon `<Select>` is copied verbatim from `AboutEditor`. The public page swaps the previously-hardcoded inline `<svg>` per card for `<Icon name={card.icon} />`, which resolves the key against `shared/icons/icon-set.json` — confirmed during exploration to render byte-identical SVGs to what was hardcoded before.
+
+Timeline:
+
+- Eyebrow + heading + a 4-step array (`num`, `title`, `text`). `num` is kept as a **string** (`"01"`–`"04"`), not a coerced number, so the leading zero and display formatting are preserved — a deliberate schema choice.
+- Decision: Timeline (and Why Us) are modeled **per-page** inside `home.schema.ts`, not as a shared content type. Exploration found Services has its own separately-hardcoded, still-unwired Timeline with near-identical but not word-for-word-identical copy (a one-word discrepancy surfaced), and About has no Timeline section at all — a shared table would have forced either duplicate rows or lossy content unification across pages that don't actually agree.
+
+Two things learned building this out that apply to any future Home section:
+
+- **Per-section merge in `useState`:** each time a new top-level section (`whyUs`, then `timeline`) was added to `homeSchema`, older saved drafts from before that key existed lacked it — reading e.g. `values.whyUs.eyebrow` on such a draft threw. Fixed once, generally: `HomeEditor`'s `useState` initializer resolves each section independently (`initial?.whyUs ?? EMPTY_HOME.whyUs`, etc.) instead of falling back to `EMPTY_HOME` only when `initial` is entirely `undefined`. Any future section addition must extend this same per-section list.
+- **Publish replaces the hardcoded fallback entirely:** the public page resolves each section as `published?.section ?? HARDCODED_*`. Once *any* draft is published, that section starts reading from the DB — including for fields the admin left empty — so a section must be filled out completely in the dashboard before publishing it, or the public page renders blank/incomplete content instead of falling back to the hardcoded values.
+
+Last HEAD: `e2da555`.
+
+---
+
 ### Next Steps
 
 - Services Migration

@@ -27,7 +27,7 @@ Legend
 | Module | Status | Progress |
 |----------|--------|----------|
 | Website Migration | 🟡 | 15% |
-| Home Page | 🟠 | ~40% |
+| Home Page | 🟠 | ~70% |
 | About | 🔴 | 0% |
 | Services | 🟢 | 100% |
 | Industries | 🟢 | 100% |

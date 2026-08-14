@@ -72,12 +72,12 @@ In Progress
 
 Home CMS:
 
-Home page CMS (CTA + Hero sections) is complete end-to-end — Zod schema, dashboard editor, and public page wired to published data.
+Home page CMS (CTA + Hero + Why Us + Timeline — all 4 sections) is complete end-to-end — Zod schema, dashboard editor, and public page wired to published data. Why Us and Timeline were decided as per-page content, not a shared content type with About/Services, since their actual step/card content and even presence differ across those pages.
 
-Next Home sections:
+Remaining Home sections (deferred):
 
-- Why Us (6-card array).
-- Timeline / Work Process (4 steps) — shared with About/Services; shared-content-type decision still pending.
+- Client logos strip — currently a hardcoded placeholder grid; needs a new Prisma model.
+- FAQ — needs a new Prisma model.
 
 ---
 
