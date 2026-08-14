@@ -203,7 +203,7 @@ export function HomeEditor({ initial }: HomeEditorProps) {
         <FormField label="العنوان — الكلمة المميزة" htmlFor="hero-title-highlight" required helpText="تظهر بلون ذهبي داخل العنوان">
           <Input id="hero-title-highlight" value={values.hero.titleHighlight} onChange={(e) => updateHeroField("titleHighlight", e.target.value)} required />
         </FormField>
-        <FormField label="العنوان — بقية العنوان" htmlFor="hero-title-suffix" required helpText="النص الذي يلي الكلمة المميزة">
+        <FormField label="العنوان — بقية العنوان" htmlFor="hero-title-suffix" required helpText="النص العادي الذي يسبق الكلمة المميزة">
           <Input id="hero-title-suffix" value={values.hero.titleSuffix} onChange={(e) => updateHeroField("titleSuffix", e.target.value)} required />
         </FormField>
 
